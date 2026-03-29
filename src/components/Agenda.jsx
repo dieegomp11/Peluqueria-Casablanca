@@ -611,7 +611,8 @@ export default function Agenda() {
                         );
                       })}
                     </div>
-                  ))}
+                  );
+                })}
 
                   <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] min-h-[6.5rem] border-t-4 border-double border-gray-200 bg-orange-50/20 group/row">
                     <div className="bg-orange-50/50 border-r border-orange-100 flex flex-col items-center justify-center text-[9px] font-black uppercase text-orange-400">
