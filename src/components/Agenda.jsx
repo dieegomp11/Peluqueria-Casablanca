@@ -633,31 +633,62 @@ export default function Agenda() {
                       <span className="text-xl font-light">+</span>Fuera<br/>Hora
                     </div>
                     {hairdressers.map(hd => {
-                      const apt = appointments.find(a => a.date === currentFormattedDate && a.time === 'extra' && a.hairdresser === hd);
+                      const extraApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra' && a.hairdresser === hd);
                       const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
+                      const isExtraPast = currentFormattedDate < strToday;
+
                       return (
-                        <div key={`extra-${hd}`} className="p-2 border-r border-orange-100/50 last:border-r-0 relative group">
-                          {apt ? (
-                            <article className="h-full w-full p-3 rounded-xl border border-orange-200 bg-white shadow-sm transition-all hover:border-black flex flex-col justify-between">
-                              <h2 className="text-sm font-bold truncate">{apt.client}</h2>
-                              <div className="flex flex-col gap-1 mt-auto">
-                                <span className="self-start text-[9px] font-bold uppercase px-2 py-0.5 rounded border bg-orange-100 text-orange-800 border-orange-300">EXTRA</span>
-                                <div className="flex items-center gap-1 text-[11px] text-gray-500 font-medium"><Phone className="w-3 h-3" /><span>{apt.phone}</span></div>
-                              </div>
-                            </article>
-                          ) : (
-                               (() => {
-                                 const isExtraPast = currentFormattedDate < strToday;
-                                 return (
-                                   <div 
-                                     className={`w-full h-full rounded-xl border-2 border-dashed border-orange-200/50 transition-colors flex flex-col items-center justify-center opacity-0 ${isExtraPast ? 'cursor-not-allowed' : 'hover:border-orange-400 group-hover:opacity-100 cursor-pointer text-orange-400'}`} 
-                                     onClick={() => { if (!isExtraPast) setNewAptModal({ open: true, time: currentDate.getDay() === 6 ? '14:00' : '21:00', hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null }); }}
-                                   >
-                                     {!isExtraPast && <><span className="text-xl font-light">+</span><span className="text-[10px] font-bold uppercase text-center">Cita<br/>Especial</span></>}
-                                   </div>
-                                 );
-                               })()
-                            )}
+                        <div key={`extra-${hd}`} className="p-2 border-r border-orange-100/50 last:border-r-0 flex flex-col gap-2 min-h-[7rem]">
+                          {extraApts.map(apt => {
+                            const startTimeStr = apt.rawDate ? new Date(apt.rawDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                            const endTimeStr = apt.rawDate ? new Date(new Date(apt.rawDate).getTime() + apt.durationMins * 60000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                            
+                            return (
+                              <article 
+                                key={apt.id} 
+                                onClick={() => setSelectedAptId(selectedAptId === apt.id ? null : apt.id)}
+                                className={`relative w-full p-2.5 rounded-xl border-2 bg-white shadow-sm transition-all cursor-pointer ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : 'border-amber-400 hover:border-amber-500'}`}
+                              >
+                                {selectedAptId === apt.id && (
+                                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center gap-4 z-50" onClick={(e) => { e.stopPropagation(); setSelectedAptId(null); }}>
+                                    <button onClick={() => handleAttendance(apt.id, false)} className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center shadow-sm"><X className="w-4 h-4"/></button>
+                                    <button onClick={() => handleAttendance(apt.id, true)} className="w-8 h-8 rounded-full bg-green-100 text-green-500 flex items-center justify-center shadow-sm"><Check className="w-4 h-4"/></button>
+                                  </div>
+                                )}
+
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-start justify-between gap-1">
+                                    <h2 className="text-[11px] font-black uppercase truncate leading-tight flex-1">{apt.client}</h2>
+                                    <div className="flex items-center gap-0.5 text-[9px] font-bold text-amber-600 bg-amber-50 px-1 rounded">
+                                      {startTimeStr}-{endTimeStr}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-amber-50">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700`}>
+                                        {apt.service}
+                                      </span>
+                                      <div className="flex items-center gap-0.5 text-[10px] text-gray-400 font-bold">
+                                        <Phone className="w-2.5 h-2.5" />
+                                        <span>{apt.phone}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </article>
+                            );
+                          })}
+
+                          {!isExtraPast && (
+                            <button 
+                              onClick={() => setNewAptModal({ open: true, time: currentDate.getDay() === 6 ? '14:00' : '21:00', hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
+                              className="w-full py-3 rounded-xl border-2 border-dashed border-amber-200 text-amber-400 hover:border-amber-400 hover:bg-amber-50 transition-all flex flex-col items-center justify-center gap-1 group"
+                            >
+                              <span className="text-xl font-light leading-none">+</span>
+                              <span className="text-[9px] font-bold uppercase tracking-tighter">Cita Especial</span>
+                            </button>
+                          )}
                         </div>
                       );
                     })}
