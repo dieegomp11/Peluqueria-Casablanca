@@ -584,15 +584,17 @@ export default function Agenda() {
                                         ) : (
                                           <div className="flex flex-col h-full justify-between min-h-0">
                                             <h2 className={`text-sm font-bold leading-none truncate uppercase mb-0.5`}>{apt.client}</h2>
-                                            <div className="flex items-center justify-between gap-1 mt-auto pt-0.5 border-t border-gray-50 overflow-hidden">
-                                              <div className="flex items-center gap-1 shrink overflow-hidden">
-                                                <span className={`truncate text-[8px] font-bold uppercase px-1 py-0 rounded border ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                            <div className="flex flex-col gap-1 mt-auto pt-1 border-t border-gray-50 overflow-hidden">
+                                              <div className="flex items-center justify-between gap-1 shrink overflow-hidden">
                                                 <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center px-1 py-0 rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
                                                   {apt.confirmado ? <Check className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/>}
                                                   <span className="text-[7px] font-black uppercase tracking-wider">{apt.confirmado ? 'Confirmado' : 'Pendiente'}</span>
                                                 </span>
+                                                <div className="flex shrink-0 items-center gap-0.5 text-[10px] sm:text-[11px] text-gray-400 font-bold"><Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3" /><span>{apt.phone}</span></div>
                                               </div>
-                                              <div className="flex shrink-0 items-center gap-0.5 text-[10px] sm:text-[11px] text-gray-400 font-bold"><Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3" /><span>{apt.phone}</span></div>
+                                              <div className="flex items-center gap-1 shrink overflow-hidden">
+                                                <span className={`truncate text-[8px] font-bold uppercase px-1 py-0 rounded border w-fit ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                              </div>
                                             </div>
                                           </div>
                                         )}
