@@ -1,0 +1,26 @@
+[
+  {
+    "idCita": 3,
+    "cliente": 1,
+    "fechaCreacion": "2026-03-25T16:22:29.403166+00:00",
+    "peluquero": 4,
+    "corte": 1,
+    "precio": 15,
+    "fechaInicio": "2026-03-27T09:00:00+00:00",
+    "fechaFin": "2026-03-27T09:30:00+00:00",
+    "confirmado": false,
+    "asistencia": null
+  },
+  {
+    "idCita": 1,
+    "cliente": 1,
+    "fechaCreacion": "2026-03-25T15:59:44.159165+00:00",
+    "peluquero": 4,
+    "corte": 1,
+    "precio": 15,
+    "fechaInicio": "2026-03-26T09:00:00+00:00",
+    "fechaFin": "2026-03-26T09:30:00+00:00",
+    "confirmado": true,
+    "asistencia": true
+  }
+]

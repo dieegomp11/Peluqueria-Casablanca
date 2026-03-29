@@ -1,0 +1,16 @@
+{
+  "Corte": null,
+  "Cortes": null,
+  "Peluquero": null,
+  "Peluqueros": [
+    {
+      "idPeluquero": 1,
+      "nombre": "Youssef",
+      "notas": "Es el jefe, corta el pelo en el primer puesto, el mas cercano a la puerta",
+      "fechaCreacion": "2026-03-25T15:57:37.451792+00:00"
+    }
+  ],
+  "TipoCorte": null,
+  "Servicios": null,
+  "Servicio": null
+}
