@@ -218,9 +218,10 @@ export default function Agenda() {
             if (!c.hora_inicio) {
               const h = d.getHours();
               const m = d.getMinutes();
-              const isSat = d.getDay() === 6;
               if ((isSat && h >= 14) || (!isSat && (h >= 21 || (h === 20 && m > 30)))) {
                 timeVal = 'extra';
+              } else if (!isSat && ((h === 13 && m > 30) || (h >= 14 && h < 17))) {
+                timeVal = 'extra_mid';
               } else {
                 timeVal = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
               }
@@ -416,10 +417,11 @@ export default function Agenda() {
                   {timeSlots.map((time, slotIndex) => {
                     const SLOT_HEIGHT = 7; // rem
                     return (
-                    <div key={time} className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-100 group/row" style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
-                      <div className="bg-gray-50 border-r border-gray-100 flex items-center justify-center text-[10px] md:text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.1em]" style={{ height: `${SLOT_HEIGHT}rem` }}>
-                        {time}
-                      </div>
+                    <React.Fragment key={time}>
+                      <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-100 group/row" style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
+                        <div className="bg-gray-50 border-r border-gray-100 flex items-center justify-center text-[10px] md:text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.1em]" style={{ height: `${SLOT_HEIGHT}rem` }}>
+                          {time}
+                        </div>
 
                       {hairdressers.map(hd => {
                         const slotStartMins = timeToMins(time);
@@ -625,8 +627,70 @@ export default function Agenda() {
                         );
                       })}
                     </div>
-                  );
-                })}
+
+                    {/* Siesta / Mid-day Extra Section (Only Weekdays after 13:30) */}
+                    {time === '13:30' && currentDate.getDay() >= 1 && currentDate.getDay() <= 5 && (
+                      <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b-2 border-gray-100 bg-amber-50/10 min-h-[5rem] group/siesta">
+                        <div className="bg-amber-50/50 border-r border-amber-100 flex flex-col items-center justify-center text-[8px] font-black uppercase text-amber-500 text-center leading-tight">
+                          <span className="text-lg font-light">+</span>Extra<br/>Siesta
+                        </div>
+                        {hairdressers.map(hd => {
+                          const midApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra_mid' && a.hairdresser === hd);
+                          const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
+                          const isMidPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && new Date().getHours() >= 17);
+
+                          return (
+                            <div key={`mid-${hd}`} className="p-2 border-r border-amber-100/30 last:border-r-0 flex flex-col gap-2 min-h-[5rem]">
+                              {midApts.map(apt => {
+                                const startTimeStr = apt.rawDate ? new Date(apt.rawDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                                const endTimeStr = apt.rawDate ? new Date(new Date(apt.rawDate).getTime() + apt.durationMins * 60000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                                return (
+                                  <article 
+                                    key={apt.id} 
+                                    onClick={(e) => { e.stopPropagation(); setSelectedAptId(selectedAptId === apt.id ? null : apt.id); }}
+                                    className={`relative w-full p-2 rounded-xl border-2 bg-white shadow-sm transition-all cursor-pointer ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : 'border-amber-400 hover:border-amber-500'}`}
+                                  >
+                                    {selectedAptId === apt.id && (
+                                      <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center gap-4 z-50" onClick={(e) => { e.stopPropagation(); setSelectedAptId(null); }}>
+                                        <button onClick={() => handleAttendance(apt.id, false)} className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center shadow-sm"><X className="w-4 h-4"/></button>
+                                        <button onClick={() => handleAttendance(apt.id, true)} className="w-8 h-8 rounded-full bg-green-100 text-green-500 flex items-center justify-center shadow-sm"><Check className="w-4 h-4"/></button>
+                                      </div>
+                                    )}
+                                    <div className="flex flex-col gap-1">
+                                      <div className="flex items-start justify-between gap-1">
+                                        <h2 className="text-[10px] font-black uppercase truncate leading-tight flex-1">{apt.client}</h2>
+                                        <div className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 rounded shrink-0">{startTimeStr}-{endTimeStr}</div>
+                                      </div>
+                                      <div className="flex flex-col gap-1 mt-0.5 pt-0.5 border-t border-amber-50">
+                                        <div className="flex items-center justify-between gap-1">
+                                          <span className="text-[7px] font-black uppercase px-1 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700 truncate">{apt.service}</span>
+                                          <div className="flex items-center gap-0.5 text-[9px] text-gray-400 font-bold shrink-0">
+                                            <Phone className="w-2 h-2" />
+                                            <span>{apt.phone}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </article>
+                                );
+                              })}
+                              {!isMidPast && (
+                                <button 
+                                  onClick={() => setNewAptModal({ open: true, time: '14:00', hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
+                                  className="w-full py-2 rounded-xl border-2 border-dashed border-amber-200 text-amber-400 hover:border-amber-400 hover:bg-amber-50 transition-all flex flex-col items-center justify-center opacity-0 group-hover/siesta:opacity-100"
+                                >
+                                  <span className="text-lg font-light leading-none">+</span>
+                                  <span className="text-[8px] font-bold uppercase tracking-tighter">Cita Siesta</span>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    </React.Fragment>
+                );
+              })}
 
                   <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] min-h-[6.5rem] border-t-4 border-double border-gray-200 bg-orange-50/20 group/row">
                     <div className="bg-orange-50/50 border-r border-orange-100 flex flex-col items-center justify-center text-[9px] font-black uppercase text-orange-400">

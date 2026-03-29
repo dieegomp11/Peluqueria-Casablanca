@@ -81,20 +81,20 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/30 transition-opacity">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50">
           <div className="flex items-center gap-2">
-            <CalendarX className="w-5 h-5 text-gray-800" />
-            <h2 className="text-lg font-bold uppercase tracking-tight text-gray-900">Registrar Ausencia</h2>
+            <CalendarX className="w-4 h-4 text-gray-800" />
+            <h2 className="text-base font-bold uppercase tracking-tight text-gray-900 leading-none">Registrar Ausencia</h2>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
+            <X className="w-4 h-4" />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 space-y-3">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-bold shadow-sm">
+            <div className="p-2.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[10px] font-bold shadow-sm">
               ⚠ {error}
             </div>
           )}
@@ -115,7 +115,7 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
           {/* Fechas */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Desde Día</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Desde Día</label>
               <div className="relative">
                 <button
                   type="button"

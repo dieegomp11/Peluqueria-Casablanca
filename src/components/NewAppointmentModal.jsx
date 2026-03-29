@@ -196,32 +196,31 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-auto"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center px-5 py-3 border-b border-gray-100 bg-gray-50">
+        <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50">
           <div>
-            <h2 className="text-lg font-extrabold uppercase tracking-wider">Nueva Cita</h2>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
+            <h2 className="text-base font-extrabold uppercase tracking-wider leading-none">Nueva Cita</h2>
+            <p className="text-[10px] text-gray-500 font-medium mt-0.5">
               {hairdresser} · {slotDate} · {slotTime}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-full transition-colors leading-none flex items-center justify-center">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 flex flex-col gap-4">
+        <div className="p-4 flex flex-col gap-3">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-bold shadow-sm animate-in zoom-in-95 duration-200">
+            <div className="p-2.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[10px] font-bold shadow-sm animate-in zoom-in-95 duration-200">
               ⚠ {error}
             </div>
           )}
           {/* Client Search / Create */}
           <div>
-            <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2 block">
-              <User className="w-3.5 h-3.5 inline mr-1.5" />
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
+              <User className="w-3 h-3 inline mr-1" />
               Cliente
             </label>
             
@@ -348,9 +347,9 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
 
           {/* Cut Type Selector */}
           <div>
-            <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2 block">
-              <Scissors className="w-3.5 h-3.5 inline mr-1.5" />
-              Tipo de Corte
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">
+              <Scissors className="w-3 h-3 inline mr-1" />
+              Servicio
             </label>
             <div className="grid grid-cols-1 gap-2">
               {cutTypes.map(ct => (
