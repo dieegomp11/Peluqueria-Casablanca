@@ -410,12 +410,14 @@ export default function Agenda() {
           </div>
 
           <div className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white">
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full min-w-[700px] lg:min-w-0">
               {timeSlots.length > 0 ? (
                 <>
-                  {timeSlots.map((time, slotIndex) => (
-                    <div key={time} className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-100 group/row" style={{ height: '8rem', overflow: 'visible', zIndex: 100 - slotIndex }}>
-                      <div className="h-[8rem] bg-gray-50 border-r border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.1em]">
+                  {timeSlots.map((time, slotIndex) => {
+                    const SLOT_HEIGHT = 5.5; // rem
+                    return (
+                    <div key={time} className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-100 group/row" style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
+                      <div className="bg-gray-50 border-r border-gray-100 flex items-center justify-center text-[10px] md:text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.1em]" style={{ height: `${SLOT_HEIGHT}rem` }}>
                         {time}
                       </div>
 
@@ -448,7 +450,7 @@ export default function Agenda() {
                         });
 
                         return (
-                          <div key={`${time}-${hd}`} className="p-2 border-r border-gray-100 last:border-r-0 relative group h-[8rem] cursor-pointer" style={{ overflow: isMultiSlot ? 'visible' : undefined }}>
+                          <div key={`${time}-${hd}`} className="p-1 md:p-2 border-r border-gray-100 last:border-r-0 relative group cursor-pointer" style={{ height: `${SLOT_HEIGHT}rem`, overflow: isMultiSlot ? 'visible' : undefined }}>
                             {absenceRecord ? (
                               <div 
                                 className="w-full h-full rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center opacity-80 relative group/absence transition-colors"
@@ -481,9 +483,9 @@ export default function Agenda() {
                                 )}
                               </div>
                             ) : (
-                              <div className="flex flex-col h-full gap-1">
+                              <div className="flex flex-col h-full gap-0.5 md:gap-1">
                                 {isOccupiedByPrevious && (
-                                  <div style={{ height: `${(Math.min(30, (timeToMins(prevApt.time) + (prevApt.durationMins || 30)) - slotStartMins) / 30) * 8 - 0.5}rem` }} className="w-full shrink-0" />
+                                  <div style={{ height: `${(Math.min(30, (timeToMins(prevApt.time) + (prevApt.durationMins || 30)) - slotStartMins) / 30) * SLOT_HEIGHT - 0.25}rem` }} className="w-full shrink-0" />
                                 )}
                                 
                                 {(() => {
@@ -514,7 +516,7 @@ export default function Agenda() {
                                       els.push(
                                         <div 
                                           key={`gap-${currentMins}`}
-                                          style={{ height: `${(gapBefore / 30) * 8 - 0.5}rem`, flexShrink: 0 }} 
+                                          style={{ height: `${(gapBefore / 30) * SLOT_HEIGHT - 0.25}rem`, flexShrink: 0 }} 
                                           className={`w-full rounded-xl border-2 border-dashed border-transparent transition-colors flex items-center justify-center opacity-0 ${isPast ? 'cursor-not-allowed bg-gray-50/10' : 'hover:border-gray-200 group-hover:opacity-100 cursor-pointer'}`}
                                           onClick={(e) => { e.stopPropagation(); if (!isPast) setNewAptModal({ open: true, time: minsToTime(currentMins), hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null }); }}
                                         >
@@ -523,7 +525,7 @@ export default function Agenda() {
                                       );
                                     }
 
-                                    const cardHeight = `${((apt.durationMins || 30) / 30) * 8 - 1}rem`;
+                                    const cardHeight = `${((apt.durationMins || 30) / 30) * SLOT_HEIGHT - 0.5}rem`;
                                     els.push(
                                       <article 
                                         key={apt.id}
