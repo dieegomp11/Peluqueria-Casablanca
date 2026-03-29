@@ -218,6 +218,7 @@ export default function Agenda() {
             if (!c.hora_inicio) {
               const h = d.getHours();
               const m = d.getMinutes();
+              const isSat = d.getDay() === 6;
               if ((isSat && h >= 14) || (!isSat && (h >= 21 || (h === 20 && m > 30)))) {
                 timeVal = 'extra';
               } else if (!isSat && ((h === 13 && m > 30) || (h >= 14 && h < 17))) {
