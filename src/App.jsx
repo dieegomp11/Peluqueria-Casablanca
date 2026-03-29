@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, Users } from 'lucide-react';
 import Agenda from './components/Agenda';
 import Clients from './components/Clients';
+import logoUrl from './assets/logo.png';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agenda');
@@ -11,7 +12,7 @@ function App() {
       {/* Sidebar Navigation */}
       <nav className="w-20 sm:w-24 bg-black flex flex-col items-center py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50">
         <div className="w-16 h-16 flex items-center justify-center mb-10">
-          <img src="/logo.png" alt="Casablanca" className="w-full h-full object-contain" />
+          <img src={logoUrl} alt="Casablanca" className="w-full h-full object-contain" />
         </div>
         
         <div className="flex flex-col gap-6 w-full px-4">
