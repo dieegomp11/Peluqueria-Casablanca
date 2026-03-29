@@ -250,7 +250,6 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   value={newClientName}
                   onChange={(e) => setNewClientName(e.target.value)}
                   className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-black"
-                  autoFocus
                 />
                 <input
                   type="text"
@@ -278,7 +277,6 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="bg-transparent outline-none text-sm font-medium w-full"
-                    autoFocus
                   />
                 </div>
                 {searchResults.length > 0 && (

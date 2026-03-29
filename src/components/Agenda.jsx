@@ -571,15 +571,14 @@ export default function Agenda() {
                                         )}
 
                                         {apt.durationMins < 25 ? (
-                                          <div className="flex flex-row items-center justify-between h-full min-h-0 gap-1.5 overflow-hidden">
-                                            <div className="flex items-center gap-1.5 truncate">
-                                              <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center p-0.5 rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
-                                                {apt.confirmado ? <Check className="w-2.5 h-2.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5" strokeWidth={3}/>}
+                                          <div className="flex flex-col justify-center h-full min-h-0 gap-0.5 overflow-hidden">
+                                            <div className="flex items-center gap-1 w-full overflow-hidden shrink-0">
+                                              <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center p-[2px] rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
+                                                {apt.confirmado ? <Check className="w-2 h-2" strokeWidth={3}/> : <Clock className="w-2 h-2" strokeWidth={3}/>}
                                               </span>
-                                              <h2 className="text-[10px] md:text-[11px] font-bold leading-none truncate uppercase shrink-0" title={apt.client}>{apt.client}</h2>
-                                              <span className={`truncate text-[7px] font-bold uppercase px-1 py-0 rounded border hidden sm:inline-block ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                              <h2 className="text-[10px] md:text-[11px] font-bold leading-none truncate uppercase" title={apt.client}>{apt.client}</h2>
                                             </div>
-                                            <div className="hidden sm:flex shrink-0 items-center gap-0.5 text-[9px] text-gray-400 font-bold"><Phone className="w-2.5 h-2.5" /><span>{apt.phone}</span></div>
+                                            <span className={`truncate text-[7px] md:text-[8px] font-bold uppercase px-1 py-[1px] rounded border w-max shrink-0 ${getServiceBadge(apt.service)}`}>{apt.service}</span>
                                           </div>
                                         ) : (
                                           <div className="flex flex-col h-full justify-between min-h-0">

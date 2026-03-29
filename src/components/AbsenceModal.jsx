@@ -136,8 +136,7 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
                       setEndDate(e.target.value);
                     }
                   }}
-                  className="opacity-0 absolute inset-0 w-0 h-0 pointer-events-none"
-                  tabIndex={-1}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
                 />
               </div>
             </div>
@@ -159,8 +158,7 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
                   min={startDate}
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="opacity-0 absolute inset-0 w-0 h-0 pointer-events-none"
-                  tabIndex={-1}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
                 />
               </div>
             </div>

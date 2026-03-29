@@ -8,9 +8,9 @@ function App() {
   const [activeTab, setActiveTab] = useState('agenda');
 
   return (
-    <div className="flex h-screen w-full bg-[#fcfcfc] overflow-hidden">
+    <div className="flex h-[100dvh] w-full bg-[#fcfcfc] overflow-hidden fixed inset-0">
       {/* Sidebar Navigation */}
-      <nav className="w-20 sm:w-24 bg-black flex flex-col items-center py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50">
+      <nav className="w-20 sm:w-24 bg-black flex flex-col items-center py-6 sm:py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50 overflow-y-auto">
         <div className="w-16 h-16 flex items-center justify-center mb-10">
           <img src={logoUrl} alt="Casablanca" className="w-full h-full object-contain" />
         </div>
