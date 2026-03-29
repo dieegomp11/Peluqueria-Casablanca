@@ -410,7 +410,7 @@ export default function Agenda() {
           </div>
 
           <div className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white">
-            <div className="flex flex-col h-full min-w-[500px] lg:min-w-0">
+            <div className="block min-w-[500px] lg:min-w-0">
               {timeSlots.length > 0 ? (
                 <>
                   {timeSlots.map((time, slotIndex) => {
@@ -450,7 +450,7 @@ export default function Agenda() {
                         });
 
                         return (
-                          <div key={`${time}-${hd}`} className="p-1 md:p-2 border-r border-gray-100 last:border-r-0 relative group cursor-pointer" style={{ height: `${SLOT_HEIGHT}rem`, overflow: isMultiSlot ? 'visible' : undefined }}>
+                          <div key={`${time}-${hd}`} className="p-1 md:p-2 border-r border-gray-100 last:border-r-0 relative group cursor-pointer min-w-0" style={{ height: `${SLOT_HEIGHT}rem`, overflow: isMultiSlot ? 'visible' : undefined }}>
                             {absenceRecord ? (
                               <div 
                                 className="w-full h-full rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center opacity-80 relative group/absence transition-colors"
