@@ -200,7 +200,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
+        <div className="flex justify-between items-center px-5 py-3 border-b border-gray-100 bg-gray-50">
           <div>
             <h2 className="text-lg font-extrabold uppercase tracking-wider">Nueva Cita</h2>
             <p className="text-xs text-gray-500 font-medium mt-0.5">
@@ -212,7 +212,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
           </button>
         </div>
 
-        <div className="p-6 flex flex-col gap-5">
+        <div className="p-5 flex flex-col gap-4">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-bold shadow-sm animate-in zoom-in-95 duration-200">
               ⚠ {error}
