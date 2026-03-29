@@ -410,11 +410,11 @@ export default function Agenda() {
           </div>
 
           <div className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white">
-            <div className="flex flex-col h-full min-w-[700px] lg:min-w-0">
+            <div className="flex flex-col h-full min-w-[500px] lg:min-w-0">
               {timeSlots.length > 0 ? (
                 <>
                   {timeSlots.map((time, slotIndex) => {
-                    const SLOT_HEIGHT = 5.5; // rem
+                    const SLOT_HEIGHT = 7; // rem
                     return (
                     <div key={time} className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-100 group/row" style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
                       <div className="bg-gray-50 border-r border-gray-100 flex items-center justify-center text-[10px] md:text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.1em]" style={{ height: `${SLOT_HEIGHT}rem` }}>
@@ -530,7 +530,7 @@ export default function Agenda() {
                                       <article 
                                         key={apt.id}
                                         onClick={(e) => { e.stopPropagation(); if (apt.status !== 'completed' && apt.status !== 'no-show') setSelectedAptId(apt.id); }}
-                                        className={`w-full rounded-xl border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer flex flex-col justify-between relative shrink-0 ${apt.durationMins < 25 ? 'p-1.5' : 'p-3'} ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200 hover:border-black'}`}
+                                        className={`w-full rounded-xl border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer flex flex-col justify-between relative shrink-0 ${apt.durationMins < 25 ? 'p-1 px-1.5' : 'p-3'} ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200 hover:border-black'}`}
                                         style={{ height: cardHeight, zIndex: 20 - idx }}
                                       >
                                         {!(selectedAptId === apt.id || confirmCancelId === apt.id) && (
@@ -570,19 +570,32 @@ export default function Agenda() {
                                           </div>
                                         )}
 
-                                        <div className="flex flex-col h-full justify-between min-h-0">
-                                          <h2 className={`${apt.durationMins < 20 ? 'text-[11px]' : 'text-sm'} font-bold leading-none truncate uppercase mb-0.5`}>{apt.client}</h2>
-                                          <div className="flex items-center justify-between gap-1 mt-auto pt-0.5 border-t border-gray-50 overflow-hidden">
-                                            <div className="flex items-center gap-1 shrink overflow-hidden">
-                                              <span className={`truncate text-[8px] font-bold uppercase px-1 py-0 rounded border ${getServiceBadge(apt.service)}`}>{apt.service}</span>
-                                              <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center px-1 py-0 rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
-                                                {apt.confirmado ? <Check className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/>}
-                                                <span className="text-[7px] font-black uppercase tracking-wider">{apt.confirmado ? 'Confirmado' : 'Pendiente'}</span>
+                                        {apt.durationMins < 25 ? (
+                                          <div className="flex flex-row items-center justify-between h-full min-h-0 gap-1.5 overflow-hidden">
+                                            <div className="flex items-center gap-1.5 truncate">
+                                              <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center p-0.5 rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
+                                                {apt.confirmado ? <Check className="w-2.5 h-2.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5" strokeWidth={3}/>}
                                               </span>
+                                              <h2 className="text-[10px] md:text-[11px] font-bold leading-none truncate uppercase shrink-0" title={apt.client}>{apt.client}</h2>
+                                              <span className={`truncate text-[7px] font-bold uppercase px-1 py-0 rounded border hidden sm:inline-block ${getServiceBadge(apt.service)}`}>{apt.service}</span>
                                             </div>
-                                            <div className="flex shrink-0 items-center gap-0.5 text-[10px] sm:text-[11px] text-gray-400 font-bold"><Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3" /><span>{apt.phone}</span></div>
+                                            <div className="hidden sm:flex shrink-0 items-center gap-0.5 text-[9px] text-gray-400 font-bold"><Phone className="w-2.5 h-2.5" /><span>{apt.phone}</span></div>
                                           </div>
-                                        </div>
+                                        ) : (
+                                          <div className="flex flex-col h-full justify-between min-h-0">
+                                            <h2 className={`text-sm font-bold leading-none truncate uppercase mb-0.5`}>{apt.client}</h2>
+                                            <div className="flex items-center justify-between gap-1 mt-auto pt-0.5 border-t border-gray-50 overflow-hidden">
+                                              <div className="flex items-center gap-1 shrink overflow-hidden">
+                                                <span className={`truncate text-[8px] font-bold uppercase px-1 py-0 rounded border ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                                <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center px-1 py-0 rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
+                                                  {apt.confirmado ? <Check className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/>}
+                                                  <span className="text-[7px] font-black uppercase tracking-wider">{apt.confirmado ? 'Confirmado' : 'Pendiente'}</span>
+                                                </span>
+                                              </div>
+                                              <div className="flex shrink-0 items-center gap-0.5 text-[10px] sm:text-[11px] text-gray-400 font-bold"><Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3" /><span>{apt.phone}</span></div>
+                                            </div>
+                                          </div>
+                                        )}
                                       </article>
                                     );
 
