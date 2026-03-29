@@ -581,7 +581,13 @@ export default function Agenda() {
                                               </span>
                                               <h2 className="text-[10px] md:text-[11px] font-bold leading-none truncate uppercase" title={apt.client}>{apt.client}</h2>
                                             </div>
-                                            <span className={`truncate text-[7px] md:text-[8px] font-bold uppercase px-1 py-[1px] rounded border w-max shrink-0 ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                            <div className="flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 mt-0.5">
+                                              <span className={`truncate text-[7px] md:text-[8px] font-bold uppercase px-1 py-[1px] rounded border w-fit shrink-0 ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                              <div className="flex items-center gap-0.5 text-[7px] md:text-[8px] text-gray-400 font-bold shrink-0">
+                                                <Phone className="w-2 h-2" />
+                                                <span>{apt.phone}</span>
+                                              </div>
+                                            </div>
                                           </div>
                                         ) : (
                                           <div className="flex flex-col h-full justify-between min-h-0">
