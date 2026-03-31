@@ -86,8 +86,8 @@ const Login = ({ session, isRecoveryMode }) => {
 
   if (isRecoveryMode) {
     return (
-      <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden p-4 select-none">
-        <div className="w-full max-w-lg z-10 animate-in zoom-in-95 duration-700">
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden overscroll-none p-4 select-none touch-none">
+        <div className="w-full max-w-lg z-10 animate-in zoom-in-95 duration-700 touch-auto">
            <div className="bg-black border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative">
              <div className="flex flex-col items-center mb-8 text-center">
                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-6 ring-4 ring-blue-500/5">
@@ -152,8 +152,8 @@ const Login = ({ session, isRecoveryMode }) => {
   }
 
   return (
-    <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden p-4 select-none">
-      <div className="w-full max-w-md z-10 animate-in fade-in slide-in-from-bottom-12 duration-1000">
+    <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden overscroll-none p-4 select-none touch-none">
+      <div className="w-full max-w-md z-10 animate-in fade-in slide-in-from-bottom-12 duration-1000 touch-auto">
         <div className="bg-black border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
           
           <div className="flex flex-col items-center mb-8 text-center">
@@ -240,9 +240,9 @@ const Login = ({ session, isRecoveryMode }) => {
       </div>
 
       {showPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-500" />
-          <div className="relative w-full max-w-sm backdrop-blur-2xl bg-white/10 border border-white/20 rounded-[3rem] p-10 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-12 duration-700">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 overscroll-none touch-none">
+          <div className="absolute inset-0 bg-black backdrop-blur-md animate-in fade-in duration-500" />
+          <div className="relative w-full max-w-sm backdrop-blur-2xl bg-white/10 border border-white/20 rounded-[3rem] p-10 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-12 duration-700 touch-auto">
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-24 bg-blue-500/20 rounded-full flex items-center justify-center mb-8 shadow-inner ring-8 ring-blue-500/5">
                 <Clock className="w-12 h-12 text-blue-400" />

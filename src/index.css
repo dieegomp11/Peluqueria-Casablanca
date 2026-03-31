@@ -9,17 +9,20 @@
     margin: 0;
     padding: 0;
     overflow: hidden;
+    overscroll-behavior: none;
     height: 100dvh;
     width: 100%;
     position: fixed;
     top: 0;
     left: 0;
+    background-color: #000000; /* dark by default */
     -webkit-overflow-scrolling: touch;
+    touch-action: none;
   }
 
   body {
-    background-color: #f8fafc; /* light minimal */
-    color: #000000;
+    background-color: #000000;
+    color: #ffffff;
     font-family: 'Inter', system-ui, sans-serif;
   }
 }
