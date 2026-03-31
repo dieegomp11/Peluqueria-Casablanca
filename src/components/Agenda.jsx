@@ -695,7 +695,7 @@ export default function Agenda() {
                                     <article 
                                       key={apt.id} 
                                       onClick={(e) => { e.stopPropagation(); if (apt.status !== 'completed' && apt.status !== 'no-show') setSelectedAptId(selectedAptId === apt.id ? null : apt.id); }}
-                                      className={`relative w-full p-2.5 rounded-xl border-2 shadow-sm transition-all cursor-pointer shrink-0 ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-amber-400 hover:border-amber-500'} ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : ''}`}
+                                      className={`relative w-full ${apt.durationMins <= 15 ? 'p-1' : 'p-2.5'} rounded-xl border-2 shadow-sm transition-all cursor-pointer shrink-0 ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-amber-400 hover:border-amber-500'} ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : ''}`}
                                       style={{ height: cardHeight }}
                                     >
                                       {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && (
@@ -738,15 +738,15 @@ export default function Agenda() {
                                       <div className="flex flex-col justify-center h-full min-h-0 gap-0 overflow-hidden">
                                         <div className="flex items-center gap-1 w-full overflow-hidden shrink-0">
                                           <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center p-[1px] rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
-                                            {apt.confirmado ? <Check className="w-2.5 h-2.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5" strokeWidth={3}/>}
+                                            {apt.confirmado ? <Check className={`w-2.5 h-2.5 ${apt.durationMins <= 15 ? 'scale-75' : ''}`} strokeWidth={3}/> : <Clock className={`w-2.5 h-2.5 ${apt.durationMins <= 15 ? 'scale-75' : ''}`} strokeWidth={3}/>}
                                           </span>
-                                          <h2 className="text-[10px] items-center font-bold leading-none truncate uppercase flex-1" title={apt.client}>{apt.client}</h2>
-                                          <div className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 rounded shrink-0 leading-tight">{startTimeStr}-{endTimeStr}</div>
+                                          <h2 className={`${apt.durationMins <= 15 ? 'text-[9px]' : 'text-[10px]'} items-center font-bold leading-none truncate uppercase flex-1`} title={apt.client}>{apt.client}</h2>
+                                          <div className={`${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} font-bold text-amber-600 bg-amber-50 px-1 rounded shrink-0 leading-tight`}>{startTimeStr}-{endTimeStr}</div>
                                         </div>
-                                        <div className="flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 mt-1 pb-0.5">
-                                          <span className="text-[7px] font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1" title={apt.service}>{apt.service}</span>
-                                          <div className="flex items-center gap-0.5 text-[8px] text-gray-400 font-bold shrink-0">
-                                            <Phone className="w-2 h-2" />
+                                        <div className={`flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 ${apt.durationMins <= 15 ? 'mt-0.5' : 'mt-1'} pb-0.5`}>
+                                          <span className={`${apt.durationMins <= 15 ? 'text-[6px]' : 'text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1`} title={apt.service}>{apt.service}</span>
+                                          <div className={`flex items-center gap-0.5 ${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} text-gray-400 font-bold shrink-0`}>
+                                            <Phone className={`${apt.durationMins <= 15 ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
                                             <span>{apt.phone}</span>
                                           </div>
                                         </div>
@@ -823,7 +823,7 @@ export default function Agenda() {
                                    <article 
                                      key={apt.id} 
                                      onClick={() => { if (apt.status !== 'completed' && apt.status !== 'no-show') setSelectedAptId(selectedAptId === apt.id ? null : apt.id); }}
-                                     className={`relative w-full p-2.5 rounded-xl border-2 shadow-sm transition-all cursor-pointer shrink-0 ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-amber-400 hover:border-amber-500'} ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : ''}`}
+                                     className={`relative w-full ${apt.durationMins <= 15 ? 'p-1' : 'p-2.5'} rounded-xl border-2 shadow-sm transition-all cursor-pointer shrink-0 ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-amber-400 hover:border-amber-500'} ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : ''}`}
                                      style={{ height: cardHeight }}
                                    >
                                      {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && (
@@ -866,15 +866,15 @@ export default function Agenda() {
                                      <div className="flex flex-col justify-center h-full min-h-0 gap-0 overflow-hidden">
                                        <div className="flex items-center gap-1 w-full overflow-hidden shrink-0">
                                          <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center p-[1px] rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
-                                           {apt.confirmado ? <Check className="w-2.5 h-2.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5" strokeWidth={3}/>}
+                                           {apt.confirmado ? <Check className={`w-2.5 h-2.5 ${apt.durationMins <= 15 ? 'scale-75' : ''}`} strokeWidth={3}/> : <Clock className={`w-2.5 h-2.5 ${apt.durationMins <= 15 ? 'scale-75' : ''}`} strokeWidth={3}/>}
                                          </span>
-                                         <h2 className="text-[10px] font-bold leading-none truncate uppercase flex-1" title={apt.client}>{apt.client}</h2>
-                                         <div className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 rounded shrink-0 leading-tight">{startTimeStr}-{endTimeStr}</div>
+                                         <h2 className={`${apt.durationMins <= 15 ? 'text-[9px]' : 'text-[10px]'} font-bold leading-none truncate uppercase flex-1`} title={apt.client}>{apt.client}</h2>
+                                         <div className={`${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} font-bold text-amber-600 bg-amber-50 px-1 rounded shrink-0 leading-tight`}>{startTimeStr}-{endTimeStr}</div>
                                        </div>
-                                       <div className="flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 mt-1 pb-0.5">
-                                         <span className="text-[7px] font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1" title={apt.service}>{apt.service}</span>
-                                         <div className="flex items-center gap-0.5 text-[8px] text-gray-400 font-bold shrink-0">
-                                           <Phone className="w-2 h-2" />
+                                       <div className={`flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 ${apt.durationMins <= 15 ? 'mt-0.5' : 'mt-1'} pb-0.5`}>
+                                         <span className={`${apt.durationMins <= 15 ? 'text-[6px]' : 'text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1`} title={apt.service}>{apt.service}</span>
+                                         <div className={`flex items-center gap-0.5 ${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} text-gray-400 font-bold shrink-0`}>
+                                           <Phone className={`${apt.durationMins <= 15 ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
                                            <span>{apt.phone}</span>
                                          </div>
                                        </div>
