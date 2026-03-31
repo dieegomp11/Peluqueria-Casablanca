@@ -86,7 +86,7 @@ const Login = ({ session, isRecoveryMode }) => {
 
   if (isRecoveryMode) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-black relative overflow-hidden p-4 select-none">
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden p-4 select-none">
         <div className="w-full max-w-lg z-10 animate-in zoom-in-95 duration-700">
            <div className="bg-black border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative">
              <div className="flex flex-col items-center mb-8 text-center">
@@ -152,7 +152,7 @@ const Login = ({ session, isRecoveryMode }) => {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black relative overflow-hidden p-4 select-none">
+    <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden p-4 select-none">
       <div className="w-full max-w-md z-10 animate-in fade-in slide-in-from-bottom-12 duration-1000">
         <div className="bg-black border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
           

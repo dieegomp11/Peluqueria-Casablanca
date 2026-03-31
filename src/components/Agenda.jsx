@@ -14,14 +14,12 @@ const formatDate = (date) => {
 };
 
 const timeToMins = (t, rawDate) => { 
-  if (!t || t === 'extra') return 0;
-  if (t === 'extra_mid') {
-    if (rawDate) {
-      const d = new Date(rawDate);
-      return d.getHours() * 60 + d.getMinutes();
-    }
-    return 14 * 60; // Fallback
+  if (rawDate) {
+    const d = new Date(rawDate);
+    return d.getHours() * 60 + d.getMinutes();
   }
+  if (!t || t === 'extra') return 0;
+  if (t === 'extra_mid') return 14 * 60;
   const [h, m] = t.split(':').map(Number); 
   return h * 60 + m; 
 };
@@ -219,24 +217,25 @@ export default function Agenda() {
 
       if (citasData) {
         const mapped = citasData.map(c => {
-          let timeVal = c.hora_inicio ? c.hora_inicio.substring(0, 5) : '00:00';
           let dateStr = '';
+          let timeVal = '';
           
           if (c.fechaInicio) {
             const d = new Date(c.fechaInicio);
-            if (!c.hora_inicio) {
-              const h = d.getHours();
-              const m = d.getMinutes();
-              const isSat = d.getDay() === 6;
-              if ((isSat && h >= 14) || (!isSat && (h >= 21 || (h === 20 && m > 30)))) {
-                timeVal = 'extra';
-              } else if (!isSat && ((h === 13 && m > 30) || (h >= 14 && h < 17))) {
-                timeVal = 'extra_mid';
-              } else {
-                timeVal = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-              }
-            }
             dateStr = formatDate(d);
+            const h = d.getHours();
+            const m = d.getMinutes();
+            const totalMins = h * 60 + m;
+            const isSat = d.getDay() === 6;
+
+            // Categorize based on absolute time
+            if ((isSat && h >= 14) || (!isSat && (h >= 21 || (h === 20 && m > 30)))) {
+              timeVal = 'extra';
+            } else if (!isSat && (totalMins >= 13 * 60 + 30 && totalMins < 17 * 60)) {
+              timeVal = 'extra_mid';
+            } else {
+              timeVal = c.hora_inicio ? c.hora_inicio.substring(0, 5) : `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            }
           }
 
           let status = 'pending';
