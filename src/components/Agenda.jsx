@@ -13,8 +13,15 @@ const formatDate = (date) => {
   return d.toISOString().split('T')[0];
 };
 
-const timeToMins = (t) => { 
+const timeToMins = (t, rawDate) => { 
   if (!t || t === 'extra') return 0;
+  if (t === 'extra_mid') {
+    if (rawDate) {
+      const d = new Date(rawDate);
+      return d.getHours() * 60 + d.getMinutes();
+    }
+    return 14 * 60; // Fallback
+  }
   const [h, m] = t.split(':').map(Number); 
   return h * 60 + m; 
 };
@@ -110,6 +117,8 @@ export default function Agenda() {
   const [newAptModal, setNewAptModal] = useState({ open: false, time: '', hairdresser: '', hairdresserId: null });
   const [hairdresserMap, setHairdresserMap] = useState({});
   const menuRef = useRef(null);
+  
+  const SLOT_HEIGHT = 7; // rem
 
   const [confirmCancelId, setConfirmCancelId] = useState(null);
   const [confirmDeleteAbsenceId, setConfirmDeleteAbsenceId] = useState(null);
@@ -416,7 +425,6 @@ export default function Agenda() {
               {timeSlots.length > 0 ? (
                 <>
                   {timeSlots.map((time, slotIndex) => {
-                    const SLOT_HEIGHT = 7; // rem
                     return (
                     <React.Fragment key={time}>
                       <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-100 group/row" style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
@@ -498,7 +506,7 @@ export default function Agenda() {
                                   if (slotApts.length === 0) {
                                     const gapMins = nextSlotMins - currentMins;
                                     const showGap = gapMins >= 5 && currentMins < nextSlotMins;
-                                    const isPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && currentMins < (new Date().getHours() * 60 + new Date().getMinutes()));
+                                    const isPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && (currentMins + 30) < (new Date().getHours() * 60 + new Date().getMinutes()));
                                     
                                     return showGap ? (
                                       <div 
@@ -515,7 +523,7 @@ export default function Agenda() {
                                     
                                     const gapBefore = aptStartMins - currentMins;
                                     if (gapBefore >= 5 && currentMins < aptStartMins) {
-                                      const isPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && currentMins < (new Date().getHours() * 60 + new Date().getMinutes()));
+                                      const isPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && (currentMins + 30) < (new Date().getHours() * 60 + new Date().getMinutes()));
                                       els.push(
                                         <div 
                                           key={`gap-${currentMins}`}
@@ -536,7 +544,7 @@ export default function Agenda() {
                                         className={`w-full rounded-xl border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer flex flex-col justify-between relative shrink-0 ${apt.durationMins < 25 ? 'p-1 px-1.5' : 'p-3'} ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200 hover:border-black'}`}
                                         style={{ height: cardHeight, zIndex: 20 - idx }}
                                       >
-                                        {!(selectedAptId === apt.id || confirmCancelId === apt.id) && (
+                                        {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && (
                                           <button 
                                             onClick={(e) => { e.stopPropagation(); setConfirmCancelId(apt.id); }}
                                             className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 transition-all flex items-center justify-center shadow-sm z-[60]"
@@ -614,7 +622,7 @@ export default function Agenda() {
 
                                   const finalGapMins = nextSlotMins - currentMins;
                                   if (finalGapMins >= 5 && currentMins < nextSlotMins) {
-                                    const isFinalPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && currentMins < (new Date().getHours() * 60 + new Date().getMinutes()));
+                                    const isFinalPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && (currentMins + 30) < (new Date().getHours() * 60 + new Date().getMinutes()));
                                     els.push(
                                       <div 
                                         key={`gap-final`}
@@ -642,21 +650,81 @@ export default function Agenda() {
                           <span className="text-lg font-light">+</span>Extra<br/>Siesta
                         </div>
                         {hairdressers.map(hd => {
-                          const midApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra_mid' && a.hairdresser === hd);
                           const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
                           const isMidPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && new Date().getHours() >= 17);
+                          
+                          const midApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra_mid' && a.hairdresser === hd);
+                          const regularOverflowApts = appointments.filter(a => {
+                             if (a.date !== currentFormattedDate || a.hairdresser !== hd || a.time === 'extra_mid' || a.time === 'extra') return false;
+                             const startMins = timeToMins(a.time);
+                             const endMins = startMins + (a.durationMins || 30);
+                             // Solo nos importan las que empezaron ANTES de las 14 y terminan DESPUÉS de las 14
+                             return startMins < 14 * 60 && endMins > 14 * 60;
+                          });
+
+                          const siestaStartMins = 14 * 60; 
+                          const siestaEndLimit = 17 * 60;
+                          
+                          // 1. Calculamos SOLO el hueco del overflow real de la mañana
+                          let overflowEndMins = siestaStartMins;
+                          regularOverflowApts.forEach(a => {
+                             const end = timeToMins(a.time, a.rawDate) + (a.durationMins || 30);
+                             if (end > overflowEndMins) overflowEndMins = end;
+                          });
+                          if (overflowEndMins > siestaEndLimit) overflowEndMins = siestaEndLimit;
+                          const overflowGapHeight = ((overflowEndMins - siestaStartMins) / 30) * SLOT_HEIGHT;
+
+                          // 2. Calculamos el total de ocupación (incluyendo extras) para el botón de "Nueva Cita"
+                          let lastEndMins = overflowEndMins;
+                          midApts.forEach(a => {
+                             const end = timeToMins(a.time, a.rawDate) + (a.durationMins || 30);
+                             if (end > lastEndMins) lastEndMins = end;
+                          });
+                          if (lastEndMins > siestaEndLimit) lastEndMins = siestaEndLimit;
 
                           return (
                             <div key={`mid-${hd}`} className="p-2 border-r border-amber-100/30 last:border-r-0 flex flex-col gap-2 min-h-[5rem]">
+                              {overflowGapHeight > 0 && <div style={{ height: `${overflowGapHeight - 0.5}rem` }} className="w-full shrink-0" />}
+                              
                               {midApts.map(apt => {
                                 const startTimeStr = apt.rawDate ? new Date(apt.rawDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
                                 const endTimeStr = apt.rawDate ? new Date(new Date(apt.rawDate).getTime() + apt.durationMins * 60000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
                                 return (
                                   <article 
                                     key={apt.id} 
-                                    onClick={(e) => { e.stopPropagation(); setSelectedAptId(selectedAptId === apt.id ? null : apt.id); }}
-                                    className={`relative w-full p-2 rounded-xl border-2 bg-white shadow-sm transition-all cursor-pointer ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : 'border-amber-400 hover:border-amber-500'}`}
+                                    onClick={(e) => { e.stopPropagation(); if (apt.status !== 'completed' && apt.status !== 'no-show') setSelectedAptId(selectedAptId === apt.id ? null : apt.id); }}
+                                    className={`relative w-full p-2 rounded-xl border-2 shadow-sm transition-all cursor-pointer ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-amber-400 hover:border-amber-500'} ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : ''}`}
                                   >
+                                    {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && (
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); setConfirmCancelId(apt.id); }}
+                                        className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 transition-all flex items-center justify-center shadow-sm z-[60]"
+                                        title="Cancelar Cita"
+                                      >
+                                        <X className="w-3.5 h-3.5" strokeWidth={3} />
+                                      </button>
+                                    )}
+
+                                    {confirmCancelId === apt.id && (
+                                      <div className="absolute inset-0 bg-red-600/95 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center p-2 z-[70] animate-in fade-in duration-200">
+                                        <p className="text-white text-[10px] font-black uppercase tracking-tighter mb-2 text-center">¿Cancelar?</p>
+                                        <div className="flex gap-2 w-full">
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); handleCancel(apt.id); }}
+                                            className="flex-1 bg-white text-red-600 text-[10px] font-bold py-1 rounded-lg shadow-sm hover:bg-gray-100 transition-colors"
+                                          >
+                                            Sí
+                                          </button>
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); setConfirmCancelId(null); }}
+                                            className="flex-1 bg-black/20 text-white text-[10px] font-bold py-1 rounded-lg hover:bg-black/40 transition-colors"
+                                          >
+                                            No
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+
                                     {selectedAptId === apt.id && (
                                       <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center gap-4 z-50" onClick={(e) => { e.stopPropagation(); setSelectedAptId(null); }}>
                                         <button onClick={() => handleAttendance(apt.id, false)} className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center shadow-sm"><X className="w-4 h-4"/></button>
@@ -670,7 +738,13 @@ export default function Agenda() {
                                       </div>
                                       <div className="flex flex-col gap-1 mt-0.5 pt-0.5 border-t border-amber-50">
                                         <div className="flex items-center justify-between gap-1">
-                                          <span className="text-[7px] font-black uppercase px-1 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700 truncate">{apt.service}</span>
+                                          <div className="flex items-center gap-1 overflow-hidden flex-1">
+                                            <span className="text-[7px] font-black uppercase px-1 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700 truncate min-w-0" title={apt.service}>{apt.service}</span>
+                                            <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center px-1 py-0 rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
+                                              {apt.confirmado ? <Check className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/>}
+                                              <span className="text-[6.5px] font-black uppercase tracking-[0.02em]">{apt.confirmado ? 'Confirmado' : 'Pendiente'}</span>
+                                            </span>
+                                          </div>
                                           <div className="flex items-center gap-0.5 text-[9px] text-gray-400 font-bold shrink-0">
                                             <Phone className="w-2 h-2" />
                                             <span>{apt.phone}</span>
@@ -683,11 +757,11 @@ export default function Agenda() {
                               })}
                               {!isMidPast && (
                                 <button 
-                                  onClick={() => setNewAptModal({ open: true, time: '14:00', hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
+                                  onClick={() => setNewAptModal({ open: true, time: minsToTime(lastEndMins), hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
                                   className="w-full py-2 rounded-xl border-2 border-dashed border-amber-200 text-amber-400 hover:border-amber-400 hover:bg-amber-50 transition-all flex flex-col items-center justify-center opacity-0 group-hover/siesta:opacity-100"
                                 >
                                   <span className="text-lg font-light leading-none">+</span>
-                                  <span className="text-[8px] font-bold uppercase tracking-tighter">Cita Siesta</span>
+                                  <span className="text-[8px] font-bold uppercase tracking-tighter">Cita Siesta ({minsToTime(lastEndMins)})</span>
                                 </button>
                               )}
                             </div>
@@ -704,12 +778,40 @@ export default function Agenda() {
                       <span className="text-xl font-light">+</span>Fuera<br/>Hora
                     </div>
                     {hairdressers.map(hd => {
-                      const extraApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra' && a.hairdresser === hd);
                       const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
                       const isExtraPast = currentFormattedDate < strToday;
+                      
+                      const extraApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra' && a.hairdresser === hd);
+                      const regularExtraOverflowApts = appointments.filter(a => {
+                         if (a.date !== currentFormattedDate || a.hairdresser !== hd || a.time === 'extra') return false;
+                         const startMins = timeToMins(a.time, a.rawDate);
+                         const endMins = startMins + (a.durationMins || 30);
+                         // Solo nos importan las que empezaron ANTES de las 21 y terminan DESPUÉS de las 21
+                         return startMins < 21 * 60 && endMins > 21 * 60;
+                      });
+
+                      const extraStartMins = 21 * 60;
+                      
+                      // 1. Calculamos SOLO el hueco del overflow real de la tarde (antes de las 21)
+                      let extraOverflowEndMins = extraStartMins;
+                      regularExtraOverflowApts.forEach(a => {
+                         const end = timeToMins(a.time, a.rawDate) + (a.durationMins || 30);
+                         if (end > extraOverflowEndMins) extraOverflowEndMins = end;
+                      });
+                      const extraOverflowGapHeight = ((extraOverflowEndMins - extraStartMins) / 30) * SLOT_HEIGHT;
+
+                      // 2. Calculamos el total de ocupación (incluyendo extras) para el botón de "Nueva Cita"
+                      let lastExtraEndMins = extraOverflowEndMins;
+                      extraApts.forEach(a => {
+                         const end = timeToMins(a.time, a.rawDate) + (a.durationMins || 30);
+                         if (end > lastExtraEndMins) lastExtraEndMins = end;
+                      });
 
                       return (
                         <div key={`extra-${hd}`} className="p-2 border-r border-orange-100/50 last:border-r-0 flex flex-col gap-2 min-h-[7rem]">
+                          {/* Spacer for overflow */}
+                          {extraOverflowGapHeight > 0 && <div style={{ height: `${extraOverflowGapHeight - 0.5}rem` }} className="w-full shrink-0" />}
+
                           {extraApts.map(apt => {
                             const startTimeStr = apt.rawDate ? new Date(apt.rawDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
                             const endTimeStr = apt.rawDate ? new Date(new Date(apt.rawDate).getTime() + apt.durationMins * 60000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
@@ -717,9 +819,39 @@ export default function Agenda() {
                             return (
                               <article 
                                 key={apt.id} 
-                                onClick={() => setSelectedAptId(selectedAptId === apt.id ? null : apt.id)}
-                                className={`relative w-full p-2.5 rounded-xl border-2 bg-white shadow-sm transition-all cursor-pointer ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : 'border-amber-400 hover:border-amber-500'}`}
+                                onClick={() => { if (apt.status !== 'completed' && apt.status !== 'no-show') setSelectedAptId(selectedAptId === apt.id ? null : apt.id); }}
+                                className={`relative w-full p-2.5 rounded-xl border-2 shadow-sm transition-all cursor-pointer ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-amber-400 hover:border-amber-500'} ${selectedAptId === apt.id ? 'border-amber-600 ring-2 ring-amber-100 scale-[0.98]' : ''}`}
                               >
+                                {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && (
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setConfirmCancelId(apt.id); }}
+                                    className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 transition-all flex items-center justify-center shadow-sm z-[60]"
+                                    title="Cancelar Cita"
+                                  >
+                                    <X className="w-3.5 h-3.5" strokeWidth={3} />
+                                  </button>
+                                )}
+
+                                {confirmCancelId === apt.id && (
+                                  <div className="absolute inset-0 bg-red-600/95 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center p-2 z-[70] animate-in fade-in duration-200">
+                                    <p className="text-white text-[10px] font-black uppercase tracking-tighter mb-2 text-center">¿Cancelar?</p>
+                                    <div className="flex gap-2 w-full">
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleCancel(apt.id); }}
+                                        className="flex-1 bg-white text-red-600 text-[10px] font-bold py-1 rounded-lg shadow-sm hover:bg-gray-100 transition-colors"
+                                      >
+                                        Sí
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); setConfirmCancelId(null); }}
+                                        className="flex-1 bg-black/20 text-white text-[10px] font-bold py-1 rounded-lg hover:bg-black/40 transition-colors"
+                                      >
+                                        No
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
                                 {selectedAptId === apt.id && (
                                   <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center gap-4 z-50" onClick={(e) => { e.stopPropagation(); setSelectedAptId(null); }}>
                                     <button onClick={() => handleAttendance(apt.id, false)} className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center shadow-sm"><X className="w-4 h-4"/></button>
@@ -737,10 +869,16 @@ export default function Agenda() {
 
                                   <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-amber-50">
                                     <div className="flex items-center justify-between gap-1">
-                                      <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700`}>
-                                        {apt.service}
-                                      </span>
-                                      <div className="flex items-center gap-0.5 text-[10px] text-gray-400 font-bold">
+                                      <div className="flex items-center gap-1.5 flex-1 overflow-hidden">
+                                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700 truncate min-w-0`} title={apt.service}>
+                                          {apt.service}
+                                        </span>
+                                        <span title={apt.confirmado ? "Cita Confirmada" : "Pendiente de Confirmación"} className={`shrink-0 flex items-center justify-center px-1.5 py-0 rounded border ${apt.confirmado ? 'bg-green-100/80 text-green-600 border-green-300/50' : 'bg-amber-100/80 text-amber-600 border-amber-300/50'}`}>
+                                          {apt.confirmado ? <Check className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/> : <Clock className="w-2.5 h-2.5 mr-0.5" strokeWidth={3}/>}
+                                          <span className="text-[7px] font-black uppercase tracking-wider">{apt.confirmado ? 'Confirmado' : 'Pendiente'}</span>
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-0.5 text-[10px] text-gray-400 font-bold shrink-0">
                                         <Phone className="w-2.5 h-2.5" />
                                         <span>{apt.phone}</span>
                                       </div>
@@ -753,11 +891,11 @@ export default function Agenda() {
 
                           {!isExtraPast && (
                             <button 
-                              onClick={() => setNewAptModal({ open: true, time: currentDate.getDay() === 6 ? '14:00' : '21:00', hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
+                              onClick={() => setNewAptModal({ open: true, time: minsToTime(lastExtraEndMins), hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
                               className="w-full py-3 rounded-xl border-2 border-dashed border-amber-200 text-amber-400 hover:border-amber-400 hover:bg-amber-50 transition-all flex flex-col items-center justify-center gap-1 group"
                             >
                               <span className="text-xl font-light leading-none">+</span>
-                              <span className="text-[9px] font-bold uppercase tracking-tighter">Cita Especial</span>
+                              <span className="text-[9px] font-bold uppercase tracking-tighter">Cita Especial ({minsToTime(lastExtraEndMins)})</span>
                             </button>
                           )}
                         </div>

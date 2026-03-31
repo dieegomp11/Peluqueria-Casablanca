@@ -125,8 +125,9 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     if (slotDate === todayStr) {
       const currentMins = now.getHours() * 60 + now.getMinutes();
       const [h, m] = startTime.split(':').map(Number);
-      if (h * 60 + m < currentMins) {
-         setError("La hora de inicio no puede ser en el pasado.");
+      // Allow start time to be in the past, but not more than 30 mins ago (the slot duration)
+      if (h * 60 + m < currentMins - 30) {
+         setError("La hora de inicio no puede ser anterior al slot actual.");
          return;
       }
     }

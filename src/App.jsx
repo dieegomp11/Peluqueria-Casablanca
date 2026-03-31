@@ -1,14 +1,68 @@
-import React, { useState } from 'react';
-import { Calendar, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Users, LogOut } from 'lucide-react';
+import { supabase } from './lib/supabaseClient';
 import Agenda from './components/Agenda';
 import Clients from './components/Clients';
+import Login from './components/Login';
 import logoUrl from './assets/logo.png';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agenda');
+  const [session, setSession] = useState(null);
+  const [isRecovering, setIsRecovering] = useState(false);
+
+  useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+    });
+
+    // Check for recovery type in URL on load for better responsiveness
+    if (window.location.hash.includes('type=recovery') || window.location.hash.includes('type=invite') || window.location.hash.includes('type=signup')) {
+      setIsRecovering(true);
+    }
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      setSession(newSession);
+      
+      console.log('Auth Event:', event, !!newSession);
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovering(true);
+      }
+      
+      // Only clear recovery mode on explicit user-initiated updates or after a clear setup
+      if (event === 'USER_UPDATED' && !window.location.hash.includes('recovery')) {
+        setIsRecovering(false);
+      }
+
+      if (event === 'SIGNED_OUT') {
+        setIsRecovering(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      await supabase.auth.signOut();
+    }
+  };
+
+  // If we are in recovery mode, show the recovery UI even if there is a session
+  if (isRecovering) {
+    return <Login session={session} isRecoveryMode={true} />;
+  }
+
+  if (!session) {
+    return <Login session={session} isRecoveryMode={false} />;
+  }
 
   return (
     <div className="flex h-[100dvh] w-full bg-[#fcfcfc] overflow-hidden fixed inset-0">
+
       {/* Sidebar Navigation */}
       <nav className="w-20 sm:w-24 bg-black flex flex-col items-center py-6 sm:py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50 overflow-y-auto">
         <div className="w-16 h-16 flex items-center justify-center mb-10">
@@ -30,6 +84,16 @@ function App() {
           >
             <Users className="w-6 h-6" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Clientes</span>
+          </button>
+        </div>
+
+        <div className="mt-auto w-full px-4 pt-10">
+          <button 
+            onClick={handleLogout}
+            className="w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 text-red-500/50 hover:text-red-500 hover:bg-red-500/10"
+          >
+            <LogOut className="w-6 h-6" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Salir</span>
           </button>
         </div>
       </nav>
