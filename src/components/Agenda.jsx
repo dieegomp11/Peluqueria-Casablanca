@@ -115,6 +115,7 @@ export default function Agenda() {
   const [newAptModal, setNewAptModal] = useState({ open: false, time: '', hairdresser: '', hairdresserId: null });
   const [hairdresserMap, setHairdresserMap] = useState({});
   const menuRef = useRef(null);
+  const scrollContainerRef = useRef(null);
   
   const SLOT_HEIGHT = 7; // rem
 
@@ -298,6 +299,9 @@ export default function Agenda() {
 
   useEffect(() => {
     loadAgenda();
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
   }, [currentDate, hairdresserMap]); // Reload when hairdresserMap is ready
 
   useEffect(() => {
@@ -352,7 +356,7 @@ export default function Agenda() {
         }}
       />
       
-      <main className="flex-1 w-full pl-8 pr-8 py-4 relative z-10 flex flex-col h-full min-h-0 overflow-hidden max-w-full">
+      <main className="flex-1 w-full pl-8 pr-8 pt-4 pb-0 relative z-10 flex flex-col h-full min-h-0 overflow-hidden max-w-full">
         <header className="flex justify-between items-end mb-6 border-b-2 border-black pb-4 shrink-0">
           <div>
             <h1 className="text-5xl font-bold tracking-normal leading-none mb-1" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
@@ -419,7 +423,10 @@ export default function Agenda() {
             ))}
           </div>
 
-          <div className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white">
+          <div 
+            ref={scrollContainerRef}
+            className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white"
+          >
             <div className="block min-w-[500px] lg:min-w-0">
               {timeSlots.length > 0 ? (
                 <>

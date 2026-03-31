@@ -12,17 +12,14 @@
     overscroll-behavior: none;
     height: 100dvh;
     width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    background-color: #000000; /* dark by default */
-    -webkit-overflow-scrolling: touch;
-    touch-action: none;
+    background-color: #fcfcfc; /* Default to agenda theme */
   }
 
   body {
-    background-color: #000000;
-    color: #ffffff;
+    background-color: #fcfcfc;
+    color: #000000;
     font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }

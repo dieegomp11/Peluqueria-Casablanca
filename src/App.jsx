@@ -45,6 +45,15 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Control dynamic body background for tablet consistency
+  useEffect(() => {
+    if (!session) {
+      document.body.style.backgroundColor = '#000000';
+    } else {
+      document.body.style.backgroundColor = '#fcfcfc';
+    }
+  }, [session]);
+
   const handleLogout = async () => {
     if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
       await supabase.auth.signOut();
