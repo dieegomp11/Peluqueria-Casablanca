@@ -8,11 +8,9 @@
   html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    overscroll-behavior: none;
-    height: 100dvh;
+    height: 100%;
     width: 100%;
-    background-color: #fcfcfc; /* Default to agenda theme */
+    background-color: #fcfcfc;
   }
 
   body {
