@@ -425,7 +425,7 @@ export default function Agenda() {
 
           <div 
             ref={scrollContainerRef}
-            className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white touch-auto overscroll-contain touch-pan-y"
+            className="overflow-auto flex-1 pb-10 custom-scrollbar relative bg-white touch-auto overscroll-contain"
           >
             <div className="block min-w-[500px] lg:min-w-0">
               {timeSlots.length > 0 ? (
