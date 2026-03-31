@@ -410,7 +410,7 @@ export default function Agenda() {
           </div>
         </header>
 
-        <section className="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl flex-1 flex flex-col min-h-0 min-w-0" style={{ overflowX: 'clip', overflowY: 'hidden' }}>
+        <section className="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
           <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-200 bg-gray-50 shrink-0">
             <div className="p-4 flex items-center justify-center border-r border-gray-100">
               <Clock className="w-5 h-5 text-gray-400" />
@@ -425,7 +425,7 @@ export default function Agenda() {
 
           <div 
             ref={scrollContainerRef}
-            className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white"
+            className="overflow-y-auto overflow-x-hidden flex-1 pb-10 custom-scrollbar relative bg-white touch-auto overscroll-contain touch-pan-y"
           >
             <div className="block min-w-[500px] lg:min-w-0">
               {timeSlots.length > 0 ? (
