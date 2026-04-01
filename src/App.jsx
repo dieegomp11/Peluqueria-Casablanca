@@ -67,9 +67,14 @@ function App() {
 
     // Ultimate Scroll Lock: Prevent touchmove on anything except the agenda grid
     const preventDefault = (e) => {
-      if (e.target.closest('.agenda-scroll-container') || e.target.closest('.lucide')) return;
+      // Whitelist the agenda grid, icons, and any fixed-position modals/overlays
+      const isScrollable = e.target.closest('.agenda-scroll-container');
+      const isIcon = e.target.closest('.lucide');
+      const isFixed = window.getComputedStyle(e.target).position === 'fixed' || e.target.closest('[style*="position: fixed"]');
       
-      // If we're not inside the scrollable grid, block the scroll
+      if (isScrollable || isIcon || isFixed) return;
+      
+      // If we're not inside a whitelisted area, block the scroll
       if (e.cancelable) {
         e.preventDefault();
       }

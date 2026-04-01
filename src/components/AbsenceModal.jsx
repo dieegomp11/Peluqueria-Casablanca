@@ -80,8 +80,8 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/30 transition-opacity">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/30 transition-opacity agenda-scroll-container">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200 touch-auto">
         <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50">
           <div className="flex items-center gap-2">
             <CalendarX className="w-4 h-4 text-gray-800" />
