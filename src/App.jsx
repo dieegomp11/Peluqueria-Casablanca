@@ -112,12 +112,12 @@ function App() {
 
   return (
     <div 
-      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none"
-      style={{ height: vvHeight }}
+      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none items-stretch"
+      style={{ height: vvHeight, minHeight: '100%' }}
     >
 
       {/* Sidebar Navigation */}
-      <nav className="h-full w-20 sm:w-24 bg-black flex flex-col items-center py-6 sm:py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50 overflow-y-auto">
+      <nav className="h-full min-h-full w-20 sm:w-24 bg-black flex flex-col items-center py-6 sm:py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50 overflow-y-auto">
         <div className="w-16 h-16 flex items-center justify-center mb-10">
           <img src={logoUrl} alt="Casablanca" className="w-full h-full object-contain" />
         </div>
@@ -152,7 +152,7 @@ function App() {
       </nav>
 
       {/* Main Content Area */}
-      <div className="flex-1 relative h-full overflow-hidden touch-auto">
+      <div className="flex-1 relative h-full min-h-full overflow-hidden touch-auto bg-[#fcfcfc]">
         {activeTab === 'agenda' ? <Agenda /> : <Clients />}
       </div>
       {/* Custom Logout Confirmation Modal */}
