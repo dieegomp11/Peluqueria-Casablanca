@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, LogOut } from 'lucide-react';
+import { Calendar, Users, LogOut, AlertTriangle, X } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
 import Agenda from './components/Agenda';
 import Clients from './components/Clients';
@@ -10,6 +10,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('agenda');
   const [session, setSession] = useState(null);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     // Check current session
@@ -55,9 +56,12 @@ function App() {
   }, [session]);
 
   const handleLogout = async () => {
-    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      await supabase.auth.signOut();
-    }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = async () => {
+    await supabase.auth.signOut();
+    setShowLogoutConfirm(false);
   };
 
   // If we are in recovery mode, show the recovery UI even if there is a session
@@ -111,6 +115,45 @@ function App() {
       <div className="flex-1 relative h-full overflow-hidden">
         {activeTab === 'agenda' ? <Agenda /> : <Clients />}
       </div>
+      {/* Custom Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-500" onClick={() => setShowLogoutConfirm(false)} />
+          <div className="relative w-full max-w-sm bg-black border border-white/10 rounded-[2.5rem] p-10 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-12 duration-500">
+            <button 
+              onClick={() => setShowLogoutConfirm(false)}
+              className="absolute right-6 top-6 text-gray-500 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-8 ring-8 ring-red-500/5">
+                <AlertTriangle className="w-10 h-10 text-red-500" />
+              </div>
+              <h2 className="text-3xl font-black text-white uppercase tracking-[0.1em] mb-4">¿Cerrar Sesión?</h2>
+              <p className="text-gray-400 text-sm font-bold uppercase tracking-widest opacity-80 mb-10 leading-relaxed">
+                Estás a punto de salir del sistema de gestión Casablanca.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <button 
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-[0.1em] py-5 rounded-2xl transition-all active:scale-95 border border-white/5"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmLogout}
+                  className="bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-[0.1em] py-5 rounded-2xl shadow-xl shadow-red-600/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Salir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
