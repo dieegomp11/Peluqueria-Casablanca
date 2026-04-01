@@ -14,6 +14,15 @@ const Login = ({ session, isRecoveryMode }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [lastVisit, setLastVisit] = useState('');
 
+  // Critical fix for tablet keyboard viewport issues
+  useEffect(() => {
+    const handleBlur = () => {
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('blur', handleBlur, true);
+    return () => window.removeEventListener('blur', handleBlur, true);
+  }, []);
+
   useEffect(() => {
     if (session && !isRecoveryMode) {
       const storedLastVisit = session.user.user_metadata?.ultimaVisita;
