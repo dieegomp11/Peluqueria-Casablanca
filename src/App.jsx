@@ -11,6 +11,28 @@ function App() {
   const [session, setSession] = useState(null);
   const [isRecovering, setIsRecovering] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [vvHeight, setVvHeight] = useState('100dvh');
+
+  // Unified fix for tablet viewport and scroll issues across the whole app
+  useEffect(() => {
+    const handleViewport = () => {
+      if (window.visualViewport) {
+        setVvHeight(`${window.visualViewport.height}px`);
+      }
+      window.scrollTo(0, 0);
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewport);
+    window.visualViewport?.addEventListener('scroll', handleViewport);
+    
+    // Initial call
+    handleViewport();
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewport);
+      window.visualViewport?.removeEventListener('scroll', handleViewport);
+    };
+  }, [session]); // Re-run on session change to ensure it applies to the main app too
 
   useEffect(() => {
     // Check current session
@@ -74,7 +96,10 @@ function App() {
   }
 
   return (
-    <div className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0">
+    <div 
+      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none"
+      style={{ height: vvHeight }}
+    >
 
       {/* Sidebar Navigation */}
       <nav className="h-full w-20 sm:w-24 bg-black flex flex-col items-center py-6 sm:py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50 overflow-y-auto">
@@ -112,7 +137,7 @@ function App() {
       </nav>
 
       {/* Main Content Area */}
-      <div className="flex-1 relative h-full overflow-hidden">
+      <div className="flex-1 relative h-full overflow-hidden touch-auto">
         {activeTab === 'agenda' ? <Agenda /> : <Clients />}
       </div>
       {/* Custom Logout Confirmation Modal */}
