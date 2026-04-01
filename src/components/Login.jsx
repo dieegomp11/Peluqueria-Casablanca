@@ -13,14 +13,32 @@ const Login = ({ session, isRecoveryMode }) => {
   const [error, setError] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [lastVisit, setLastVisit] = useState('');
+  const [vvHeight, setVvHeight] = useState('100dvh');
 
-  // Critical fix for tablet keyboard viewport issues
+  // Ultimate fix for tablet keyboard viewport and scroll issues
   useEffect(() => {
-    const handleBlur = () => {
+    const handleViewport = () => {
+      if (window.visualViewport) {
+        // Force the container to match the actual visible area
+        setVvHeight(`${window.visualViewport.height}px`);
+      }
       window.scrollTo(0, 0);
     };
+
+    const handleBlur = () => {
+      window.scrollTo(0, 0);
+      handleViewport();
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewport);
+    window.visualViewport?.addEventListener('scroll', handleViewport);
     window.addEventListener('blur', handleBlur, true);
-    return () => window.removeEventListener('blur', handleBlur, true);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewport);
+      window.visualViewport?.removeEventListener('scroll', handleViewport);
+      window.removeEventListener('blur', handleBlur, true);
+    };
   }, []);
 
   useEffect(() => {
@@ -95,7 +113,10 @@ const Login = ({ session, isRecoveryMode }) => {
 
   if (isRecoveryMode) {
     return (
-      <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden overscroll-none p-4 select-none touch-auto">
+      <div 
+        className="w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden overscroll-none p-4 select-none touch-none"
+        style={{ height: vvHeight }}
+      >
         <div className="w-full max-w-lg z-10 animate-in zoom-in-95 duration-700 touch-auto">
            <div className="bg-black border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative">
              <div className="flex flex-col items-center mb-8 text-center">
@@ -161,7 +182,10 @@ const Login = ({ session, isRecoveryMode }) => {
   }
 
   return (
-    <div className="h-[100dvh] w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden overscroll-none p-4 select-none touch-auto">
+    <div 
+      className="w-full flex items-center justify-center bg-black fixed inset-0 overflow-hidden overscroll-none p-4 select-none touch-none"
+      style={{ height: vvHeight }}
+    >
       <div className="w-full max-w-md z-10 animate-in fade-in slide-in-from-bottom-12 duration-1000 touch-auto">
         <div className="bg-black border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
           
