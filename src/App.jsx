@@ -65,7 +65,22 @@ function App() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Ultimate Scroll Lock: Prevent touchmove on anything except the agenda grid
+    const preventDefault = (e) => {
+      if (e.target.closest('.agenda-scroll-container') || e.target.closest('.lucide')) return;
+      
+      // If we're not inside the scrollable grid, block the scroll
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('touchmove', preventDefault, { passive: false });
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('touchmove', preventDefault);
+    };
   }, []);
 
   // Control dynamic body background for tablet consistency
