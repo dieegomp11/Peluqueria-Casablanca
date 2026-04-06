@@ -118,8 +118,7 @@ function App() {
 
   return (
     <div 
-      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none items-stretch"
-      style={{ height: vvHeight, minHeight: '100%' }}
+      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none items-stretch h-full"
     >
 
       {/* Sidebar Navigation */}

@@ -17,7 +17,6 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   const [newClientPhone, setNewClientPhone] = useState('');
   const [creatingClient, setCreatingClient] = useState(false);
   const [error, setError] = useState('');
-  const [initialHeight, setInitialHeight] = useState('100%');
   const searchRef = useRef(null);
 
   // Limpiar errores
@@ -40,7 +39,6 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       }
     }
     if (isOpen) {
-      setInitialHeight(`${window.innerHeight}px`);
       fetchCutTypes();
       setStartTime(slotTime || '10:00');
       setSelectedClient(null);
@@ -53,41 +51,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setError('');
       window.scrollTo(0, 0);
     }
-
-    const preventScroll = (e) => {
-      if (isOpen) {
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        // Reinforce after a tiny delay to override browser's native behavior
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-          document.body.scrollTop = 0;
-        }, 50);
-      }
-    };
-
-    let rafId;
-    const forceScrollTop = () => {
-      if (isOpen) {
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        rafId = requestAnimationFrame(forceScrollTop);
-      }
-    };
-
-    if (isOpen) {
-      window.addEventListener('scroll', preventScroll, { passive: false });
-      document.addEventListener('focusin', preventScroll);
-      rafId = requestAnimationFrame(forceScrollTop);
-    }
-
     return () => {
-      window.removeEventListener('scroll', preventScroll);
-      document.removeEventListener('focusin', preventScroll);
-      if (rafId) cancelAnimationFrame(rafId);
       window.scrollTo(0, 0);
-      document.body.scrollTop = 0;
     };
   }, [isOpen, slotTime]);
 
@@ -235,207 +200,163 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   if (!isOpen) return null;
 
   return createPortal(
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4" 
-      onClick={onClose}
-      style={{ height: initialHeight }}
-    >
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 touch-auto"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" 
+        onClick={onClose} 
+      />
+      <div 
+        className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 touch-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Header */}
-        <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50 shrink-0">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50 shrink-0">
           <div>
-            <h2 className="text-base font-extrabold uppercase tracking-wider leading-none">Nueva Cita</h2>
-            <p className="text-[10px] text-gray-500 font-medium mt-1">
-              {hairdresser} · {slotDate} · {slotTime}
+            <h2 className="text-base font-black uppercase tracking-tight leading-none text-black">Nueva Cita</h2>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+              {hairdresser} · {slotTime}
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
+            <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-4">
+        {/* Content Area */}
+        <div className="p-6 flex flex-col gap-5 overflow-y-auto max-h-[60vh] custom-scrollbar">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[10px] font-bold shadow-sm animate-in zoom-in-95 duration-200 shrink-0">
+            <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm animate-in zoom-in-95 duration-200 shrink-0">
               ⚠ {error}
             </div>
           )}
           
-          {/* Client Search / Create */}
+          {/* Client Selection */}
           <div className="shrink-0">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">
-              <User className="w-3 h-3 inline mr-1" />
-              Cliente
-            </label>
-            
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1">Cliente</label>
             {selectedClient ? (
-              <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between bg-gray-50 border-2 border-transparent rounded-[1.5rem] px-5 py-4">
                 <div className="min-w-0">
-                  <p className="font-bold text-sm truncate">{selectedClient.nombreCliente}</p>
-                  <p className="text-xs text-gray-500">{selectedClient.telefono}</p>
+                  <p className="font-black text-sm text-black truncate uppercase tracking-tight">{selectedClient.nombreCliente}</p>
+                  <p className="text-xs font-bold text-gray-400">{selectedClient.telefono}</p>
                 </div>
                 <button 
                   onClick={() => { setSelectedClient(null); setSearchQuery(''); setIsAddingNewClient(false); }}
-                  className="text-xs font-bold text-red-500 hover:text-red-700 uppercase shrink-0 ml-4 underline"
+                  className="text-[10px] font-black text-red-500 hover:text-red-700 uppercase tracking-widest ml-4 underline"
                 >
                   Cambiar
                 </button>
               </div>
             ) : isAddingNewClient ? (
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold uppercase text-gray-500">Nuevo Cliente</span>
-                  <button onClick={() => setIsAddingNewClient(false)} className="text-xs font-bold text-gray-400 hover:text-black uppercase underline">Cancelar</button>
+              <div className="bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 flex flex-col gap-4 shadow-inner">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nuevo Cliente</span>
+                  <button onClick={() => setIsAddingNewClient(false)} className="text-[10px] font-black text-gray-400 hover:text-black uppercase underline">Cancelar</button>
                 </div>
                 <input
                   type="text"
                   placeholder="Nombre completo"
                   value={newClientName}
                   onChange={(e) => setNewClientName(e.target.value)}
-                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-black"
+                  onFocus={() => window.scrollTo(0,0)}
+                  className="bg-white border-2 border-gray-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-black transition-all"
                 />
                 <input
                   type="text"
                   placeholder="Teléfono"
                   value={newClientPhone}
                   onChange={(e) => setNewClientPhone(e.target.value)}
-                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-black"
+                  onFocus={() => window.scrollTo(0,0)}
+                  className="bg-white border-2 border-gray-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-black transition-all"
                 />
                 <button
                   onClick={handleCreateClient}
                   disabled={!newClientName || !newClientPhone || creatingClient}
-                  className="w-full py-2.5 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-lg hover:bg-blue-700 disabled:bg-gray-300 transition-colors shadow-sm"
+                  className="w-full py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 disabled:bg-gray-200 transition-all shadow-lg shadow-blue-600/20"
                 >
-                  {creatingClient ? 'Creando...' : 'Confirmar Nuevo'}
+                  {creatingClient ? 'Creando...' : 'Confirmar Registro'}
                 </button>
               </div>
             ) : (
               <div className="relative">
-                <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus-within:border-black transition-all">
-                  <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
+                <div className="flex items-center bg-gray-50 border-2 border-transparent rounded-[1.5rem] px-5 py-4 focus-within:border-black focus-within:bg-white transition-all">
+                  <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0" />
                   <input
                     ref={searchRef}
                     type="text"
                     inputMode="text"
                     autoComplete="off"
-                    placeholder="Buscar cliente..."
+                    placeholder="Buscar por nombre..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => window.scrollTo(0,0)}
-                    className="bg-transparent outline-none text-sm font-medium w-full"
+                    className="bg-transparent outline-none text-sm font-bold text-black w-full"
                   />
                 </div>
                 {searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-20 max-h-48 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-100 rounded-3xl shadow-2xl z-20 max-h-48 overflow-y-auto">
                     {searchResults.map(c => (
                       <button
                         key={c.idCliente}
                         onClick={() => { setSelectedClient(c); setSearchResults([]); }}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                        className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
                       >
-                        <p className="font-bold text-sm">{c.nombreCliente}</p>
-                        <p className="text-xs text-gray-400">{c.telefono}</p>
+                        <p className="font-black text-sm text-black uppercase tracking-tight">{c.nombreCliente}</p>
+                        <p className="text-xs font-bold text-gray-400">{c.telefono}</p>
                       </button>
                     ))}
-                  </div>
-                )}
-                {searchQuery.length >= 2 && searchResults.length === 0 && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
-                    <p className="text-xs text-blue-700 font-medium">No se encontró.</p>
-                    <button 
-                      onClick={() => { setIsAddingNewClient(true); setNewClientName(searchQuery); }}
-                      className="px-3 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-tight rounded-lg hover:bg-blue-700 transition-colors shrink-0 ml-2"
-                    >
-                      Añadir
-                    </button>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Time Pickers */}
+          {/* Times & Service Grid */}
           <div className="grid grid-cols-2 gap-4 shrink-0">
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">
-                <Clock className="w-3.5 h-3.5 inline mr-1.5" />
-                Inicio
-              </label>
-              <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-xl px-2 py-1.5">
-                <span className="text-base font-bold flex-1 text-center">{startTime}</span>
-                <div className="flex flex-col gap-0.5">
-                  <button onClick={() => setStartTime(adjustTime(startTime, 5))} className="p-0.5 hover:bg-gray-200 rounded transition-colors text-gray-400 hover:text-black">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1">Inicio</label>
+              <div className="flex items-center gap-2 bg-gray-50 border-2 border-transparent rounded-2xl px-3 py-2.5">
+                <span className="text-lg font-black text-black flex-1 text-center leading-none">{startTime}</span>
+                <div className="flex flex-col gap-1">
+                  <button onClick={() => setStartTime(adjustTime(startTime, 5))} className="p-0.5 hover:bg-gray-200 rounded text-gray-400 hover:text-black">
                     <ChevronUp className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setStartTime(adjustTime(startTime, -5))} className="p-0.5 hover:bg-gray-200 rounded transition-colors text-gray-400 hover:text-black">
+                  <button onClick={() => setStartTime(adjustTime(startTime, -5))} className="p-0.5 hover:bg-gray-200 rounded text-gray-400 hover:text-black">
                     <ChevronDown className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">
-                <Clock className="w-3.5 h-3.5 inline mr-1.5" />
-                Fin
-              </label>
-              <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-xl px-2 py-1.5">
-                <span className="text-base font-bold flex-1 text-center">{endTime}</span>
-                <div className="flex flex-col gap-0.5">
-                  <button onClick={() => setEndTime(adjustTime(endTime, 5))} className="p-0.5 hover:bg-gray-200 rounded transition-colors text-gray-400 hover:text-black">
-                    <ChevronUp className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setEndTime(adjustTime(endTime, -5))} className="p-0.5 hover:bg-gray-200 rounded transition-colors text-gray-400 hover:text-black">
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Cut Type Selector */}
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">
-              <Scissors className="w-3 h-3 inline mr-1" />
-              Servicio
-            </label>
-            <div className="grid grid-cols-1 gap-1.5">
-              {cutTypes.map(ct => (
-                <button
-                  key={ct.idCorte}
-                  onClick={() => setSelectedCut(ct)}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl border-2 transition-all duration-200 text-left ${
-                    selectedCut?.idCorte === ct.idCorte 
-                      ? 'border-black bg-black text-white shadow-md scale-[1.02]' 
-                      : 'border-gray-100 bg-white hover:border-gray-300'
-                  }`}
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1">Servicio</label>
+              <div className="relative">
+                <select 
+                  className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-4 py-3.5 text-sm font-black uppercase tracking-tight outline-none focus:border-black appearance-none"
+                  value={selectedCut?.idCorte || ''}
+                  onChange={(e) => {
+                    const cut = cutTypes.find(c => c.idCorte === Number(e.target.value));
+                    if (cut) setSelectedCut(cut);
+                  }}
                 >
-                  <div className="min-w-0 pr-2">
-                    <p className="font-bold text-xs truncate">{ct.nombreCorte}</p>
-                    <p className={`text-[10px] ${selectedCut?.idCorte === ct.idCorte ? 'text-gray-300' : 'text-gray-400'}`}>
-                      {ct.duracionCorteMins} min
-                    </p>
-                  </div>
-                  <span className={`text-base font-extrabold shrink-0 ${selectedCut?.idCorte === ct.idCorte ? 'text-white' : 'text-black'}`}>
-                    {ct.precioCorte}€
-                  </span>
-                </button>
-              ))}
+                  {cutTypes.map(ct => (
+                    <option key={ct.idCorte} value={ct.idCorte}>
+                      {ct.nombreCorte} ({ct.precioCorte}€)
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Fixed Footer */}
-        <div className="px-4 py-4 border-t border-gray-100 bg-gray-50 shrink-0">
+        <div className="px-6 py-6 border-t border-gray-100 bg-gray-50 shrink-0">
           <button
             onClick={handleSubmit}
             disabled={!selectedClient || !selectedCut || saving}
-            className="w-full py-3 bg-black text-white font-bold uppercase tracking-widest text-sm rounded-xl transition-all duration-200 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md active:scale-[0.98]"
+            className="w-full py-5 bg-black text-white font-black uppercase tracking-[0.2em] text-xs rounded-[1.5rem] transition-all hover:bg-zinc-800 disabled:bg-gray-200 disabled:text-gray-400 shadow-xl shadow-black/10 active:scale-95"
           >
-            {saving ? 'Guardando...' : 'Reservar Cita'}
+            {saving ? 'Guardando...' : 'Confirmar Reserva'}
           </button>
         </div>
       </div>
