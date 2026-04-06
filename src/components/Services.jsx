@@ -129,13 +129,13 @@ export default function Services() {
         {/* Services Grid */}
         <section className="flex-1 overflow-y-auto custom-scrollbar relative pr-2">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-              {[1, 2, 3, 4, 5, 6].map(i => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                 <div key={i} className="h-48 bg-gray-100 rounded-3xl" />
               ))}
             </div>
           ) : services.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-12">
               {services.map(service => (
                 <article 
                   key={service.idCorte}
