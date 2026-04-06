@@ -51,8 +51,29 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setError('');
       window.scrollTo(0, 0);
     }
+
+    const preventScroll = (e) => {
+      if (isOpen) {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        // Reinforce after a tiny delay to override browser's native behavior
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          document.body.scrollTop = 0;
+        }, 50);
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('scroll', preventScroll, { passive: false });
+      document.addEventListener('focusin', preventScroll);
+    }
+
     return () => {
+      window.removeEventListener('scroll', preventScroll);
+      document.removeEventListener('focusin', preventScroll);
       window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
     };
   }, [isOpen, slotTime]);
 
