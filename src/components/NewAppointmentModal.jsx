@@ -18,6 +18,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   const [creatingClient, setCreatingClient] = useState(false);
   const [error, setError] = useState('');
   const [vvHeight, setVvHeight] = useState(window.innerHeight);
+  const [vvOffset, setVvOffset] = useState(0);
   const searchRef = useRef(null);
 
   // Limpiar errores
@@ -39,6 +40,9 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
         }
       }
     }
+    
+    let rafId;
+
     if (isOpen) {
       fetchCutTypes();
       setStartTime(slotTime || '10:00');
@@ -51,36 +55,41 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setNewClientPhone('');
       setError('');
       window.scrollTo(0, 0);
-      setVvHeight(window.visualViewport ? window.visualViewport.height : window.innerHeight);
-    }
-
-    const preventScroll = (e) => {
-      if (isOpen) {
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
+      
+      if (window.visualViewport) {
+        setVvHeight(window.visualViewport.height);
+        setVvOffset(window.visualViewport.offsetTop);
       }
-    };
+
+      // Aggressive Scroll Lock Loop (Ultimate fix for keyboard-induced jump)
+      const forceScrollReset = () => {
+        if (window.scrollY !== 0 || window.scrollX !== 0) {
+          window.scrollTo(0, 0);
+        }
+        rafId = requestAnimationFrame(forceScrollReset);
+      };
+      rafId = requestAnimationFrame(forceScrollReset);
+    }
 
     const handleViewport = () => {
       if (window.visualViewport) {
         setVvHeight(window.visualViewport.height);
+        setVvOffset(window.visualViewport.offsetTop);
       }
       window.scrollTo(0, 0);
     };
 
     if (isOpen) {
-      window.addEventListener('scroll', preventScroll, { passive: false });
-      document.addEventListener('focusin', preventScroll);
-      document.addEventListener('focusout', preventScroll);
+      document.addEventListener('focusin', () => window.scrollTo(0, 0));
+      document.addEventListener('focusout', () => window.scrollTo(0, 0));
       window.visualViewport?.addEventListener('resize', handleViewport);
       window.visualViewport?.addEventListener('scroll', handleViewport);
     }
 
     return () => {
-      window.removeEventListener('scroll', preventScroll);
-      document.removeEventListener('focusin', preventScroll);
-      document.removeEventListener('focusout', preventScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+      document.removeEventListener('focusin', () => window.scrollTo(0, 0));
+      document.removeEventListener('focusout', () => window.scrollTo(0, 0));
       window.visualViewport?.removeEventListener('resize', handleViewport);
       window.visualViewport?.removeEventListener('scroll', handleViewport);
       window.scrollTo(0, 0);
@@ -226,12 +235,13 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       onCreated();
       onClose();
     }
-  }  if (!isOpen) return null;
+  }
+
+  if (!isOpen) return null;
 
   return createPortal(
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden"
-      style={{ height: vvHeight }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden touch-none"
     >
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" 
@@ -239,7 +249,10 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       />
       <div 
         className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 touch-auto"
-        style={{ maxHeight: `${vvHeight * 0.85}px` }}
+        style={{ 
+          maxHeight: `${vvHeight * 0.85}px`,
+          transform: `translateY(${vvOffset}px)`
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Header */}
@@ -304,7 +317,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                 <button
                   onClick={handleCreateClient}
                   disabled={!newClientName || !newClientPhone || creatingClient}
-                  className="w-full py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 disabled:bg-gray-200 transition-all"
+                  className="w-full py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 disabled:bg-gray-200 transition-all font-bold"
                 >
                   {creatingClient ? 'Creando...' : 'Confirmar Registro'}
                 </button>
@@ -403,7 +416,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               >
                 <div className="min-w-0 pr-4">
                   <p className="font-black text-xs uppercase truncate leading-none mb-1">{ct.nombreCorte}</p>
-                  <p className={`text-[10px] font-bold ${selectedCut?.idCorte === ct.idCorte ? 'text-gray-400' : 'text-gray-400'}`}>
+                  <p className={`text-[10px] font-bold ${selectedCut?.idCorte === ct.idCorte ? 'text-white/60' : 'text-gray-400'}`}>
                     {ct.duracionCorteMins} min
                   </p>
                 </div>
