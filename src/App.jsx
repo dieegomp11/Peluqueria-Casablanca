@@ -66,15 +66,20 @@ function App() {
       }
     });
 
-    // Ultimate Scroll Lock: Prevent touchmove on anything except the agenda grid
+    // Ultimate Scroll Lock: Prevent touchmove on anything except the agenda grid or modal scroll
     const preventDefault = (e) => {
-      // Whitelist the agenda grid, icons, and any fixed-position modals/overlays
-      const isScrollable = e.target.closest('.agenda-scroll-container');
+      // Whitelist the agenda grid, modal scroll area, icons, and any fixed-position modals/overlays
+      const isScrollGrid = e.target.closest('.agenda-scroll-container');
+      const isScrollModal = e.target.closest('.modal-scroll-container');
       const isIcon = e.target.closest('.lucide');
+      
+      // If we're inside a whitelisted scrollable area, don't prevent default
+      if (isScrollGrid || isScrollModal || isIcon) return;
+      
+      // Check if it's a fixed element (like the modal backdrop) - usually we don't want to scroll background
       const isFixed = window.getComputedStyle(e.target).position === 'fixed' || e.target.closest('[style*="position: fixed"]');
-      
-      if (isScrollable || isIcon || isFixed) return;
-      
+      if (isFixed && !isScrollModal) return; 
+
       // If we're not inside a whitelisted area, block the scroll
       if (e.cancelable) {
         e.preventDefault();
@@ -118,7 +123,8 @@ function App() {
 
   return (
     <div 
-      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none items-stretch h-full"
+      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none items-stretch"
+      style={{ height: vvHeight }}
     >
 
       {/* Sidebar Navigation */}

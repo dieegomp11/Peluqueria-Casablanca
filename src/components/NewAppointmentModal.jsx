@@ -17,6 +17,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   const [newClientPhone, setNewClientPhone] = useState('');
   const [creatingClient, setCreatingClient] = useState(false);
   const [error, setError] = useState('');
+  const [vvHeight, setVvHeight] = useState(window.innerHeight);
   const searchRef = useRef(null);
 
   // Limpiar errores
@@ -50,6 +51,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setNewClientPhone('');
       setError('');
       window.scrollTo(0, 0);
+      setVvHeight(window.visualViewport ? window.visualViewport.height : window.innerHeight);
     }
 
     const preventScroll = (e) => {
@@ -60,16 +62,27 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       }
     };
 
+    const handleViewport = () => {
+      if (window.visualViewport) {
+        setVvHeight(window.visualViewport.height);
+      }
+      window.scrollTo(0, 0);
+    };
+
     if (isOpen) {
       window.addEventListener('scroll', preventScroll, { passive: false });
       document.addEventListener('focusin', preventScroll);
       document.addEventListener('focusout', preventScroll);
+      window.visualViewport?.addEventListener('resize', handleViewport);
+      window.visualViewport?.addEventListener('scroll', handleViewport);
     }
 
     return () => {
       window.removeEventListener('scroll', preventScroll);
       document.removeEventListener('focusin', preventScroll);
       document.removeEventListener('focusout', preventScroll);
+      window.visualViewport?.removeEventListener('resize', handleViewport);
+      window.visualViewport?.removeEventListener('scroll', handleViewport);
       window.scrollTo(0, 0);
     };
   }, [isOpen, slotTime]);
@@ -216,13 +229,17 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   }  if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden"
+      style={{ height: vvHeight }}
+    >
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" 
         onClick={onClose} 
       />
       <div 
-        className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 touch-auto"
+        className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 touch-auto"
+        style={{ maxHeight: `${vvHeight * 0.85}px` }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Header */}
@@ -368,7 +385,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
         </div>
 
         {/* Scrollable Section: Services list only */}
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50/20 custom-scrollbar overscroll-contain">
+        <div className="flex-1 overflow-y-auto p-6 bg-gray-50/20 custom-scrollbar overscroll-contain modal-scroll-container touch-auto">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1 leading-none">
             <Scissors className="w-3 h-3 inline mr-1" />
             Servicio
