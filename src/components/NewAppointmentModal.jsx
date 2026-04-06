@@ -51,7 +51,25 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setError('');
       window.scrollTo(0, 0);
     }
+
+    const preventScroll = (e) => {
+      if (isOpen) {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('scroll', preventScroll, { passive: false });
+      document.addEventListener('focusin', preventScroll);
+      document.addEventListener('focusout', preventScroll);
+    }
+
     return () => {
+      window.removeEventListener('scroll', preventScroll);
+      document.removeEventListener('focusin', preventScroll);
+      document.removeEventListener('focusout', preventScroll);
       window.scrollTo(0, 0);
     };
   }, [isOpen, slotTime]);
@@ -210,33 +228,33 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50 shrink-0">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
           <div>
-            <h2 className="text-base font-black uppercase tracking-tight leading-none text-black">Nueva Cita</h2>
+            <h2 className="text-base font-black uppercase tracking-tight text-black leading-none">Nueva Cita</h2>
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-              {hairdresser} · {slotTime}
+              {hairdresser} · {slotDate} · {slotTime}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
-        {/* Content Area */}
-        <div className="p-6 flex flex-col gap-5 overflow-y-auto max-h-[60vh] custom-scrollbar">
+        {/* content Area - Scrollable middle */}
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar max-h-[70vh]">
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm animate-in zoom-in-95 duration-200 shrink-0">
+            <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm animate-in zoom-in-95 duration-200 flex-shrink-0">
               ⚠ {error}
             </div>
           )}
           
-          {/* Client Selection */}
-          <div className="shrink-0">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1">Cliente</label>
+          {/* Client Section */}
+          <div className="flex-shrink-0">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1 leading-none">Cliente</label>
             {selectedClient ? (
               <div className="flex items-center justify-between bg-gray-50 border-2 border-transparent rounded-[1.5rem] px-5 py-4">
                 <div className="min-w-0">
-                  <p className="font-black text-sm text-black truncate uppercase tracking-tight">{selectedClient.nombreCliente}</p>
+                  <p className="font-black text-sm text-black truncate uppercase">{selectedClient.nombreCliente}</p>
                   <p className="text-xs font-bold text-gray-400">{selectedClient.telefono}</p>
                 </div>
                 <button 
@@ -250,7 +268,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               <div className="bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 flex flex-col gap-4 shadow-inner">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nuevo Cliente</span>
-                  <button onClick={() => setIsAddingNewClient(false)} className="text-[10px] font-black text-gray-400 hover:text-black uppercase underline">Cancelar</button>
+                  <button onClick={() => setIsAddingNewClient(false)} className="text-[10px] font-black text-gray-400 underline">Cancelar</button>
                 </div>
                 <input
                   type="text"
@@ -279,13 +297,13 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
             ) : (
               <div className="relative">
                 <div className="flex items-center bg-gray-50 border-2 border-transparent rounded-[1.5rem] px-5 py-4 focus-within:border-black focus-within:bg-white transition-all">
-                  <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0" />
+                  <Search className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
                   <input
                     ref={searchRef}
                     type="text"
                     inputMode="text"
                     autoComplete="off"
-                    placeholder="Buscar por nombre..."
+                    placeholder="Buscar cliente..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => window.scrollTo(0,0)}
@@ -293,12 +311,12 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   />
                 </div>
                 {searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-100 rounded-3xl shadow-2xl z-20 max-h-48 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-100 rounded-[1.5rem] shadow-2xl z-20 max-h-48 overflow-y-auto">
                     {searchResults.map(c => (
                       <button
                         key={c.idCliente}
                         onClick={() => { setSelectedClient(c); setSearchResults([]); }}
-                        className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                        className="w-full text-left px-5 py-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
                       >
                         <p className="font-black text-sm text-black uppercase tracking-tight">{c.nombreCliente}</p>
                         <p className="text-xs font-bold text-gray-400">{c.telefono}</p>
@@ -306,57 +324,96 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                     ))}
                   </div>
                 )}
+                {searchQuery.length >= 2 && searchResults.length === 0 && (
+                  <button 
+                    onClick={() => { setIsAddingNewClient(true); setNewClientName(searchQuery); }}
+                    className="mt-3 w-full p-4 bg-blue-50 border-2 border-dashed border-blue-200 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-colors"
+                  >
+                    + Registrar "{searchQuery}"
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {/* Times & Service Grid */}
-          <div className="grid grid-cols-2 gap-4 shrink-0">
+          {/* Time Picker */}
+          <div className="grid grid-cols-2 gap-4 flex-shrink-0">
             <div>
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1">Inicio</label>
-              <div className="flex items-center gap-2 bg-gray-50 border-2 border-transparent rounded-2xl px-3 py-2.5">
-                <span className="text-lg font-black text-black flex-1 text-center leading-none">{startTime}</span>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1 leading-none">
+                <Clock className="w-3.5 h-3.5 inline mr-1.5" />
+                Inicio
+              </label>
+              <div className="flex items-center gap-2 bg-gray-50 border-2 border-transparent rounded-[1.5rem] px-4 py-3">
+                <span className="font-black text-sm text-black flex-1 text-center">{startTime}</span>
                 <div className="flex flex-col gap-1">
-                  <button onClick={() => setStartTime(adjustTime(startTime, 5))} className="p-0.5 hover:bg-gray-200 rounded text-gray-400 hover:text-black">
+                  <button onClick={() => setStartTime(adjustTime(startTime, 5))} className="hover:text-black text-gray-300">
                     <ChevronUp className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setStartTime(adjustTime(startTime, -5))} className="p-0.5 hover:bg-gray-200 rounded text-gray-400 hover:text-black">
+                  <button onClick={() => setStartTime(adjustTime(startTime, -5))} className="hover:text-black text-gray-300">
                     <ChevronDown className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1">Servicio</label>
-              <div className="relative">
-                <select 
-                  className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-4 py-3.5 text-sm font-black uppercase tracking-tight outline-none focus:border-black appearance-none"
-                  value={selectedCut?.idCorte || ''}
-                  onChange={(e) => {
-                    const cut = cutTypes.find(c => c.idCorte === Number(e.target.value));
-                    if (cut) setSelectedCut(cut);
-                  }}
-                >
-                  {cutTypes.map(ct => (
-                    <option key={ct.idCorte} value={ct.idCorte}>
-                      {ct.nombreCorte} ({ct.precioCorte}€)
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1 leading-none">
+                <Clock className="w-3.5 h-3.5 inline mr-1.5" />
+                Fin
+              </label>
+              <div className="flex items-center gap-2 bg-gray-50 border-2 border-transparent rounded-[1.5rem] px-4 py-3">
+                <span className="font-black text-sm text-black flex-1 text-center">{endTime}</span>
+                <div className="flex flex-col gap-1">
+                  <button onClick={() => setEndTime(adjustTime(endTime, 5))} className="hover:text-black text-gray-300">
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setEndTime(adjustTime(endTime, -5))} className="hover:text-black text-gray-300">
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* Service list buttons - Restore original look */}
+          <div className="flex-shrink-0">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 block ml-1 leading-none">
+              <Scissors className="w-3 h-3 inline mr-1" />
+              Servicio
+            </label>
+            <div className="grid grid-cols-1 gap-2.5">
+              {cutTypes.map(ct => (
+                <button
+                  key={ct.idCorte}
+                  onClick={() => setSelectedCut(ct)}
+                  className={`flex items-center justify-between px-5 py-5 rounded-[1.5rem] border-2 transition-all duration-200 text-left ${
+                    selectedCut?.idCorte === ct.idCorte 
+                      ? 'border-black bg-black text-white shadow-xl scale-[1.02]' 
+                      : 'border-gray-50 bg-gray-50 hover:border-gray-200'
+                  }`}
+                >
+                  <div className="min-w-0 pr-4">
+                    <p className="font-black text-xs uppercase truncate leading-none mb-1">{ct.nombreCorte}</p>
+                    <p className={`text-[10px] font-bold ${selectedCut?.idCorte === ct.idCorte ? 'text-gray-400' : 'text-gray-400'}`}>
+                      {ct.duracionCorteMins} min
+                    </p>
+                  </div>
+                  <span className={`text-sm font-black shrink-0 ${selectedCut?.idCorte === ct.idCorte ? 'text-white' : 'text-black'}`}>
+                    {ct.precioCorte}€
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Fixed Footer */}
-        <div className="px-6 py-6 border-t border-gray-100 bg-gray-50 shrink-0">
+        <div className="px-6 py-6 border-t border-gray-100 bg-gray-50 flex-shrink-0">
           <button
             onClick={handleSubmit}
             disabled={!selectedClient || !selectedCut || saving}
-            className="w-full py-5 bg-black text-white font-black uppercase tracking-[0.2em] text-xs rounded-[1.5rem] transition-all hover:bg-zinc-800 disabled:bg-gray-200 disabled:text-gray-400 shadow-xl shadow-black/10 active:scale-95"
+            className="w-full py-5 bg-black text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-[1.5rem] transition-all hover:bg-zinc-800 disabled:bg-gray-200 disabled:text-gray-400 shadow-2xl shadow-black/10 active:scale-95"
           >
-            {saving ? 'Guardando...' : 'Confirmar Reserva'}
+            {saving ? 'Guardando...' : 'Reservar Cita'}
           </button>
         </div>
       </div>
