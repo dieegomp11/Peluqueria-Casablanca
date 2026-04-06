@@ -66,14 +66,26 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       }
     };
 
+    let rafId;
+    const forceScrollTop = () => {
+      if (isOpen) {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        rafId = requestAnimationFrame(forceScrollTop);
+      }
+    };
+
     if (isOpen) {
       window.addEventListener('scroll', preventScroll, { passive: false });
       document.addEventListener('focusin', preventScroll);
+      rafId = requestAnimationFrame(forceScrollTop);
     }
 
     return () => {
       window.removeEventListener('scroll', preventScroll);
       document.removeEventListener('focusin', preventScroll);
+      if (rafId) cancelAnimationFrame(rafId);
       window.scrollTo(0, 0);
       document.body.scrollTop = 0;
     };
@@ -308,9 +320,12 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   <input
                     ref={searchRef}
                     type="text"
+                    inputMode="text"
+                    autoComplete="off"
                     placeholder="Buscar cliente..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => window.scrollTo(0,0)}
                     className="bg-transparent outline-none text-sm font-medium w-full"
                   />
                 </div>
