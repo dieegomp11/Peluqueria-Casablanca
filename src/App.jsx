@@ -13,6 +13,18 @@ function App() {
   const [isRecovering, setIsRecovering] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  // iOS Viewport fix for 'white gap'
+  useEffect(() => {
+    const setVh = () => {
+      document.documentElement.style.setProperty(
+        '--vh', `${window.innerHeight * 0.01}px`
+      );
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    return () => window.removeEventListener('resize', setVh);
+  }, []);
+
   useEffect(() => {
     // Check current session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
@@ -100,7 +112,10 @@ function App() {
   }
 
   return (
-    <div className="flex w-full h-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none items-stretch">
+    <div 
+      className="flex w-full bg-[#fcfcfc] overflow-hidden fixed inset-0 overscroll-none select-none touch-none items-stretch"
+      style={{ height: 'calc(var(--vh, 1vh) * 100)', minHeight: '100dvh' }}
+    >
 
       {/* Sidebar Navigation */}
       <nav className="h-full min-h-full w-20 sm:w-24 bg-black flex flex-col items-center py-6 sm:py-8 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.1)] z-50 overflow-y-auto">
