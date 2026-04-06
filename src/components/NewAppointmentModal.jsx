@@ -19,9 +19,28 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   const [error, setError] = useState('');
   const searchRef = useRef(null);
 
-  // Clean errors
+  // iOS Scroll Fix: Reset scroll on blur
+  const handleBlur = () => {
+    window.scrollTo(0, 0);
+  };
+
+  // Clean errors and body locking
   useEffect(() => {
     if (error) setError('');
+    
+    if (isOpen) {
+      // Point 4: Lock body position when modal is open
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.overflow = originalStyle;
+      };
+    }
   }, [startTime, endTime, selectedClient, selectedCut, isOpen]);
 
   // Load cut types on mount
@@ -50,20 +69,6 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setError('');
       window.scrollTo(0, 0);
     }
-
-    // Reset scroll on blur/focus
-    const handleReset = () => {
-      setTimeout(() => window.scrollTo(0, 0), 10);
-    };
-
-    if (isOpen) {
-      document.addEventListener('focusout', handleReset);
-    }
-
-    return () => {
-      document.removeEventListener('focusout', handleReset);
-      window.scrollTo(0, 0);
-    };
   }, [isOpen, slotTime]);
 
   useEffect(() => {
@@ -153,10 +158,11 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    /* Point 1: Enforce strict fixed dimensions for the portal root */
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflow: 'hidden' }}>
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" 
+        style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', transition: 'opacity 300ms' }}
         onClick={onClose} 
       />
       
@@ -178,7 +184,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
           </button>
         </div>
 
-        {/* Inputs Section (Fixed Height part) */}
+        {/* Inputs Section */}
         <div className="p-6 flex flex-col gap-5 border-b border-gray-100 bg-white shrink-0">
           {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest leading-none">⚠ {error}</div>}
           
@@ -194,8 +200,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               </div>
             ) : isAddingNewClient ? (
               <div className="bg-gray-50 rounded-[1.5rem] p-5 flex flex-col gap-4">
-                <input type="text" placeholder="Nombre" value={newClientName} onChange={e => setNewClientName(e.target.value)} className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all" />
-                <input type="text" placeholder="Teléfono" value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all" />
+                <input type="text" placeholder="Nombre" value={newClientName} onChange={e => setNewClientName(e.target.value)} onBlur={handleBlur} className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all" />
+                <input type="text" placeholder="Teléfono" value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} onBlur={handleBlur} className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all" />
                 <div className="flex gap-2">
                    <button onClick={handleCreateClient} className="flex-1 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Crear</button>
                    <button onClick={() => setIsAddingNewClient(false)} className="px-4 py-4 bg-gray-200 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-xl">X</button>
@@ -210,6 +216,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                     placeholder="Buscar..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
+                    onBlur={handleBlur}
                     className="bg-transparent outline-none text-sm font-bold text-black w-full"
                   />
                 </div>
