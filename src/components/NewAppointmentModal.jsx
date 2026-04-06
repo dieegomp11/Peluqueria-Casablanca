@@ -18,30 +18,44 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   const [creatingClient, setCreatingClient] = useState(false);
   const [error, setError] = useState('');
   const searchRef = useRef(null);
+  const scrollYRef = useRef(0);
 
-  // iOS Scroll Fix: Reset scroll on blur
-  const handleBlur = () => {
-    window.scrollTo(0, 0);
+  // iOS keyboard fix: save scroll position before input focus, restore after blur
+  const handleFocus = () => {
+    scrollYRef.current = window.scrollY;
   };
 
-  // Clean errors and body locking
+  const handleBlur = () => {
+    // Small timeout to let iOS finish its keyboard animation
+    setTimeout(() => {
+      window.scrollTo(0, scrollYRef.current);
+      // Force a layout recalculation
+      document.documentElement.style.transform = 'translateZ(0)';
+      requestAnimationFrame(() => {
+        document.documentElement.style.transform = '';
+      });
+    }, 100);
+  };
+
+  // Body lock when modal opens - using scrollY trick instead of position:fixed
   useEffect(() => {
-    if (error) setError('');
-    
     if (isOpen) {
-      // Point 4: Lock body position when modal is open
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
+      const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
-      
+      document.body.style.height = '100%';
+
       return () => {
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.overflow = originalStyle;
+        document.body.style.overflow = '';
+        document.body.style.height = '';
+        window.scrollTo(0, scrollY);
       };
     }
-  }, [startTime, endTime, selectedClient, selectedCut, isOpen]);
+  }, [isOpen]);
+
+  // Clean errors
+  useEffect(() => {
+    if (error) setError('');
+  }, [startTime, endTime, selectedClient, selectedCut]);
 
   // Load cut types on mount
   useEffect(() => {
@@ -67,7 +81,6 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setNewClientName('');
       setNewClientPhone('');
       setError('');
-      window.scrollTo(0, 0);
     }
   }, [isOpen, slotTime]);
 
@@ -158,11 +171,25 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   if (!isOpen) return null;
 
   return createPortal(
-    /* Point 1: Enforce strict fixed dimensions for the portal root */
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflow: 'hidden' }}>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+        // Critical for iOS: use this instead of height:100%/100vh
+        height: '-webkit-fill-available',
+      }}
+    >
       {/* Backdrop */}
       <div 
-        style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', transition: 'opacity 300ms' }}
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', transition: 'opacity 300ms' }}
         onClick={onClose} 
       />
       
@@ -200,8 +227,24 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               </div>
             ) : isAddingNewClient ? (
               <div className="bg-gray-50 rounded-[1.5rem] p-5 flex flex-col gap-4">
-                <input type="text" placeholder="Nombre" value={newClientName} onChange={e => setNewClientName(e.target.value)} onBlur={handleBlur} className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all" />
-                <input type="text" placeholder="Teléfono" value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} onBlur={handleBlur} className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all" />
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  value={newClientName}
+                  onChange={e => setNewClientName(e.target.value)}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
+                />
+                <input
+                  type="text"
+                  placeholder="Teléfono"
+                  value={newClientPhone}
+                  onChange={e => setNewClientPhone(e.target.value)}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
+                />
                 <div className="flex gap-2">
                    <button onClick={handleCreateClient} className="flex-1 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Crear</button>
                    <button onClick={() => setIsAddingNewClient(false)} className="px-4 py-4 bg-gray-200 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-xl">X</button>
@@ -216,6 +259,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                     placeholder="Buscar..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
+                    onFocus={handleFocus}
                     onBlur={handleBlur}
                     className="bg-transparent outline-none text-sm font-bold text-black w-full"
                   />
