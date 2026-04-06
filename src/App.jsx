@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, LogOut, AlertTriangle, X } from 'lucide-react';
+import { Calendar, Users, LogOut, AlertTriangle, X, Scissors } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
 import Agenda from './components/Agenda';
 import Clients from './components/Clients';
+import Services from './components/Services';
 import Login from './components/Login';
 import logoUrl from './assets/logo.png';
 
@@ -143,6 +144,14 @@ function App() {
             <Users className="w-6 h-6" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Clientes</span>
           </button>
+
+          <button 
+            onClick={() => setActiveTab('services')}
+            className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 ${activeTab === 'services' ? 'bg-white text-black shadow-lg scale-105' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+          >
+            <Scissors className="w-6 h-6" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Servicios</span>
+          </button>
         </div>
 
         <div className="mt-auto w-full px-4 pt-10">
@@ -158,7 +167,7 @@ function App() {
 
       {/* Main Content Area */}
       <div className="flex-1 relative h-full min-h-full overflow-hidden touch-auto bg-[#fcfcfc]">
-        {activeTab === 'agenda' ? <Agenda /> : <Clients />}
+        {activeTab === 'agenda' ? <Agenda /> : activeTab === 'clients' ? <Clients /> : <Services />}
       </div>
       {/* Custom Logout Confirmation Modal */}
       {showLogoutConfirm && (
