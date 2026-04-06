@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Search, Clock, Scissors, User, ChevronUp, ChevronDown } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabaseClient';
 
 export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTime, slotDate, hairdresser, hairdresserId, appointments = [], absences = [] }) {
@@ -48,7 +49,11 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setNewClientName('');
       setNewClientPhone('');
       setError('');
+      window.scrollTo(0, 0);
     }
+    return () => {
+      window.scrollTo(0, 0);
+    };
   }, [isOpen, slotTime]);
 
   // When selected cut changes, auto-adjust end time based on service duration
@@ -194,8 +199,12 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-hidden" onClick={onClose}>
+  return createPortal(
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 overflow-hidden" 
+      onClick={onClose}
+      style={{ height: '100dvh' }}
+    >
       <div 
         className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 touch-auto"
         onClick={(e) => e.stopPropagation()}
@@ -392,6 +401,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
