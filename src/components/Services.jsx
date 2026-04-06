@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Scissors, Plus, Edit2, Trash2, X, AlertTriangle, Save, Clock, Coins } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
@@ -10,6 +10,7 @@ export default function Services() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [deletingService, setDeletingService] = useState(null);
+  const inputRef = useRef(null);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -21,6 +22,12 @@ export default function Services() {
   useEffect(() => {
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    if (isModalOpen && inputRef.current) {
+      setTimeout(() => inputRef.current.focus(), 100);
+    }
+  }, [isModalOpen]);
 
   async function fetchServices() {
     setLoading(true);
@@ -231,7 +238,7 @@ export default function Services() {
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 ml-1">Nombre del Servicio</label>
                 <input 
-                  autoFocus
+                  ref={inputRef}
                   required
                   type="text"
                   placeholder="Ej: Corte Degradado"
