@@ -17,6 +17,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   const [newClientPhone, setNewClientPhone] = useState('');
   const [creatingClient, setCreatingClient] = useState(false);
   const [error, setError] = useState('');
+  const [initialHeight, setInitialHeight] = useState('100%');
   const searchRef = useRef(null);
 
   // Limpiar errores
@@ -39,6 +40,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       }
     }
     if (isOpen) {
+      setInitialHeight(`${window.innerHeight}px`);
       fetchCutTypes();
       setStartTime(slotTime || '10:00');
       setSelectedClient(null);
@@ -222,9 +224,9 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
 
   return createPortal(
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 overflow-hidden" 
+      className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4" 
       onClick={onClose}
-      style={{ height: '100dvh' }}
+      style={{ height: initialHeight }}
     >
       <div 
         className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 touch-auto"
