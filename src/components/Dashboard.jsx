@@ -482,10 +482,10 @@ export default function Dashboard() {
             </div>
 
             {/* Bottom Section: Flexible grid for Hairdressers and Trends */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 overflow-hidden" style={{gridTemplateRows: '1fr'}}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 overflow-y-auto md:overflow-hidden" style={{gridTemplateRows: '1fr'}}>
                
                {/* Hairdressers List & Charts */}
-               <div className="md:col-span-2 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
+               <div className="md:col-span-1 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
                  
                  <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-6 pr-1">
@@ -554,7 +554,7 @@ export default function Dashboard() {
                </div>
 
                {/* Trends */}
-               <div className="md:col-span-2 lg:col-span-1 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
+               <div className="md:col-span-1 lg:col-span-1 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Tendencias del Periodo</h2>
                   
                   <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
