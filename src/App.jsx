@@ -4,8 +4,10 @@ import { supabase } from './lib/supabaseClient';
 import Agenda from './components/Agenda';
 import Clients from './components/Clients';
 import Services from './components/Services';
+import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import logoUrl from './assets/logo.png';
+import { BarChart3 } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agenda');
@@ -147,6 +149,14 @@ function App() {
             <Scissors className="w-6 h-6" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Servicios</span>
           </button>
+
+          <button 
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-[#38bdf8] text-black shadow-[0_0_20px_rgba(56,189,248,0.5)] scale-105' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+          >
+            <BarChart3 className="w-6 h-6" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">KPIs</span>
+          </button>
         </div>
 
         <div className="mt-auto w-full px-4 pt-10">
@@ -162,7 +172,7 @@ function App() {
 
       {/* Main Content Area */}
       <div className="flex-1 relative h-full min-h-full overflow-hidden touch-auto bg-[#fcfcfc]">
-        {activeTab === 'agenda' ? <Agenda /> : activeTab === 'clients' ? <Clients /> : <Services />}
+        {activeTab === 'agenda' ? <Agenda /> : activeTab === 'clients' ? <Clients /> : activeTab === 'services' ? <Services /> : <Dashboard />}
       </div>
       {/* Custom Logout Confirmation Modal */}
       {showLogoutConfirm && (
