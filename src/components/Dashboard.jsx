@@ -485,12 +485,12 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 overflow-y-auto md:overflow-hidden custom-scrollbar">
                
                {/* Hairdressers List & Charts */}
-               <div className="md:col-span-2 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md overflow-hidden">
+               <div className="md:col-span-2 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md overflow-y-auto custom-scrollbar">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
                  
-                 <div className="flex-1 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-1">
+                 <div className="flex-1 flex flex-col gap-6 pr-1">
                    {/* Small Summary Cards */}
-                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
+                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                      {Object.values(byHairdresser).map(hd => (
                        <div 
                          key={hd.id} 
