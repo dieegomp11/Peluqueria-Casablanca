@@ -481,16 +481,16 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Bottom Section: Flexible grid for Hairdressers and Trends */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 overflow-y-auto md:overflow-hidden" style={{gridTemplateRows: '1fr'}}>
+            {/* Bottom Section: Robust Flex layout for iPad/Safari */}
+            <div className="flex-1 flex flex-col md:flex-row gap-4 sm:gap-6 min-h-0 overflow-hidden">
                
                {/* Hairdressers List & Charts */}
-               <div className="md:col-span-1 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
+               <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-[2] min-h-[300px] md:min-h-0 overflow-hidden">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
                  
-                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-6 pr-1">
+                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-6 pr-1 pb-8" style={{ WebkitOverflowScrolling: 'touch' }}>
                    {/* Small Summary Cards */}
-                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
                      {Object.values(byHairdresser).map(hd => (
                        <div 
                          key={hd.id} 
@@ -511,13 +511,12 @@ export default function Dashboard() {
                       const hdList = Object.values(byHairdresser);
                       if (hdList.length === 0) return null;
                       const maxCount = Math.max(...hdList.map(h => h.count));
-                      const maxReactCount = maxCount || 1; // prevent div by zero
+                      const maxReactCount = maxCount || 1;
                       const maxRev = Math.max(...hdList.map(h => h.revenue));
                       const maxReactRev = maxRev || 1;
                       
                       return (
-                        <div className="flex flex-col gap-6 border-t border-white/10 pt-4">
-                          {/* Cortes Chart */}
+                        <div className="flex flex-col gap-6 border-t border-white/10 pt-4 shrink-0">
                           <div>
                             <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">Volumen de Servicios</h3>
                             <div className="flex flex-col gap-2">
@@ -532,7 +531,6 @@ export default function Dashboard() {
                               ))}
                             </div>
                           </div>
-                          {/* Revenue Chart */}
                           <div>
                             <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">Facturación Generada</h3>
                             <div className="flex flex-col gap-2">
@@ -554,12 +552,12 @@ export default function Dashboard() {
                </div>
 
                {/* Trends */}
-               <div className="md:col-span-1 lg:col-span-1 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
+               <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-1 min-h-[400px] md:min-h-0 overflow-hidden">
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Tendencias del Periodo</h2>
                   
-                  <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
+                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1 pb-8" style={{ WebkitOverflowScrolling: 'touch' }}>
                     {filterType !== 'day' && (
-                      <>
+                      <div className="flex flex-col gap-3 shrink-0">
                         <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
                           <div>
                             <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider">Día Más Fuerte</p>
@@ -579,10 +577,10 @@ export default function Dashboard() {
                             {bestHourCount}
                           </div>
                         </div>
-                      </>
+                      </div>
                     )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 shrink-0">
                       <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between">
                         <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider mb-1">Capacidad</p>
                         <div className="flex items-end justify-between">
@@ -609,7 +607,7 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                    <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between shrink-0">
                        <div>
                          <p className="text-[9px] font-bold uppercase text-gray-500 tracking-wider">Ratio Asistencia</p>
                          <div className="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden w-24">
