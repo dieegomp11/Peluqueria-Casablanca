@@ -117,7 +117,7 @@ export default function Services() {
         {/* Header */}
         <header className="flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-8 mb-6 border-b-2 border-black pb-4 shrink-0">
           <div className="shrink-0">
-            <h1 className="text-5xl font-bold tracking-normal leading-none mb-1" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
+            <h1 className="text-5xl font-bold tracking-normal leading-none mb-1 text-black" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
               Servicios
             </h1>
           </div>

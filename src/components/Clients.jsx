@@ -15,9 +15,10 @@ export default function Clients() {
 
   useEffect(() => {
     async function fetchClients() {
-      const [{ data: clients, error }, { data: citas }] = await Promise.all([
+      const [{ data: clients, error }, { data: citas }, { data: cortes }] = await Promise.all([
         supabase.from('Cliente').select('*').order('nombreCliente', { ascending: true }),
-        supabase.from('Citas').select('cliente, fechaInicio').eq('asistencia', true)
+        supabase.from('Citas').select('cliente, fechaInicio, corte, asistencia, cancelada').eq('cancelada', false),
+        supabase.from('Tipo Corte').select('idCorte, nombreCorte')
       ]);
         
       if (clients) {
@@ -29,9 +30,20 @@ export default function Clients() {
           let vMonth = 0;
           let vYear = 0;
           
+          const cortesMap = {};
+          if (cortes) {
+            cortes.forEach(c => cortesMap[c.idCorte] = c.nombreCorte);
+          }
+          
+          let misUltimas5 = [];
           if (citas) {
             const misCitas = citas.filter(apt => apt.cliente === c.idCliente && apt.fechaInicio);
-            misCitas.forEach(apt => {
+            misUltimas5 = [...misCitas].sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio)).slice(0, 5).map(apt => ({
+              ...apt,
+              serviceName: cortesMap[apt.corte] || 'Servicio'
+            }));
+            
+            misCitas.filter(apt => apt.asistencia === true).forEach(apt => {
               const d = new Date(apt.fechaInicio);
               if (d.getFullYear() === currYear) {
                 vYear++;
@@ -48,7 +60,8 @@ export default function Clients() {
             phone: c.telefono || 'Sin teléfono',
             lastVisit: c.ultimaVisita || null,
             visitsMonth: vMonth,
-            visitsYear: vYear
+            visitsYear: vYear,
+            historial: misUltimas5
           };
         });
         setClientsData(mapped);
@@ -99,7 +112,7 @@ export default function Clients() {
         {/* Header */}
         <header className="flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-8 mb-6 border-b-2 border-black pb-4 shrink-0">
           <div className="shrink-0">
-            <h1 className="text-5xl font-bold tracking-normal leading-none mb-1" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
+            <h1 className="text-5xl font-bold tracking-normal leading-none mb-1 text-black" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
               Listado de Clientes
             </h1>
           </div>
@@ -276,6 +289,31 @@ export default function Clients() {
                   </div>
                 </div>
               </div>
+              {/* Historial of 5 last visits */}
+              {selectedClient.historial && selectedClient.historial.length > 0 && (
+                <div className="pt-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Últimos 5 Servicios</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {selectedClient.historial.map((apt, idx) => {
+                      const d = new Date(apt.fechaInicio);
+                      const isAssisted = apt.asistencia === true;
+                      const isNoShow = apt.asistencia === false;
+                      const isPending = apt.asistencia === null;
+                      return (
+                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${isAssisted ? 'bg-green-50/50 border-green-100' : isNoShow ? 'bg-red-50/50 border-red-100' : 'bg-gray-50/50 border-gray-100'}`}>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase text-gray-800">{apt.serviceName}</span>
+                            <span className="text-[9px] font-bold uppercase text-gray-400">{formatDate(apt.fechaInicio)}</span>
+                          </div>
+                          <div className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${isAssisted ? 'bg-green-100 text-green-700' : isNoShow ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-500'}`}>
+                            {isAssisted ? 'Asistió' : isNoShow ? 'No Vino' : 'Pendiente'}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>,

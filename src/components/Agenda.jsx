@@ -540,6 +540,10 @@ export default function Agenda() {
                                     }
 
                                     const cardHeight = `${((apt.durationMins || 30) / 30) * SLOT_HEIGHT - 0.5}rem`;
+                                    
+                                    const aptEndTime = new Date(apt.rawDate).getTime() + (apt.durationMins * 60000);
+                                    const isAptPast = aptEndTime < new Date().getTime();
+
                                     els.push(
                                       <article 
                                         key={apt.id}
@@ -547,7 +551,7 @@ export default function Agenda() {
                                         className={`w-full rounded-xl border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer flex flex-col justify-between relative shrink-0 ${apt.durationMins < 25 ? 'p-1 px-1.5' : 'p-3'} ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200 hover:border-black'}`}
                                         style={{ height: cardHeight, zIndex: 20 - idx }}
                                       >
-                                        {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && (
+                                        {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && !isAptPast && (
                                           <button 
                                             onClick={(e) => { e.stopPropagation(); setConfirmCancelId(apt.id); }}
                                             className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 transition-all flex items-center justify-center shadow-sm z-[60]"

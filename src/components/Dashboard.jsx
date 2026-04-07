@@ -1,7 +1,126 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Calendar, TrendingUp, Scissors, UserX, ChevronLeft, ChevronRight, BarChart3, AlertCircle, X } from 'lucide-react';
+import { Calendar as CalendarIcon, TrendingUp, Scissors, UserX, ChevronLeft, ChevronRight, BarChart3, AlertCircle, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
+
+const CustomDatePicker = ({ currentDate, onSelectDate, onClose, filterType }) => {
+  const [viewDate, setViewDate] = useState(new Date(currentDate));
+  const currentView = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+  const daysInMonth = new Date(currentView.getFullYear(), currentView.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = currentView.getDay();
+  const startDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const dayNames = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+  const prevMonth = (e) => { e.stopPropagation(); setViewDate(new Date(currentView.getFullYear(), currentView.getMonth() - 1, 1)); };
+  const nextMonth = (e) => { e.stopPropagation(); setViewDate(new Date(currentView.getFullYear(), currentView.getMonth() + 1, 1)); };
+  
+  const isSelected = (d) => currentDate.getDate() === d && currentDate.getMonth() === currentView.getMonth() && currentDate.getFullYear() === currentView.getFullYear();
+  const isToday = (d) => {
+    const t = new Date();
+    return t.getDate() === d && t.getMonth() === currentView.getMonth() && t.getFullYear() === currentView.getFullYear();
+  }
+
+  return (
+    <div 
+      className="absolute top-[130%] left-1/2 sm:left-auto lg:-translate-x-1/2 sm:-translate-x-0 sm:right-0 w-[280px] bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl p-5 z-[1000] animate-in fade-in zoom-in-95 duration-200 cursor-default"
+      onClick={(e) => e.stopPropagation()}
+    >
+       {/* If we are analyzing by Year, just show months. For Month/Week/Day show days */}
+       {filterType === 'year' ? (
+         <div className="grid grid-cols-3 gap-2">
+           <div className="col-span-3 flex justify-between items-center mb-4">
+             <button onClick={(e) => { e.stopPropagation(); setViewDate(new Date(currentView.getFullYear() - 10, 1, 1)); }} className="p-1.5 hover:bg-white/10 rounded-full transition-colors"><ChevronLeft className="w-5 h-5 text-gray-400"/></button>
+             <div className="font-extrabold text-sm text-white uppercase tracking-widest">{Math.floor(currentView.getFullYear() / 10) * 10} - {Math.floor(currentView.getFullYear() / 10) * 10 + 9}</div>
+             <button onClick={(e) => { e.stopPropagation(); setViewDate(new Date(currentView.getFullYear() + 10, 1, 1)); }} className="p-1.5 hover:bg-white/10 rounded-full transition-colors"><ChevronRight className="w-5 h-5 text-gray-400"/></button>
+           </div>
+           {Array.from({ length: 12 }).map((_, i) => {
+             const year = Math.floor(currentView.getFullYear() / 10) * 10 - 1 + i;
+             return (
+               <button
+                 key={year}
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   onSelectDate(new Date(year, 0, 1));
+                 }}
+                 className={`py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors ${currentDate.getFullYear() === year ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+               >
+                 {year}
+               </button>
+             );
+           })}
+         </div>
+       ) : filterType === 'month' ? (
+         <div className="grid grid-cols-3 gap-2">
+           <div className="col-span-3 flex justify-between items-center mb-4">
+             <button onClick={(e) => { e.stopPropagation(); setViewDate(new Date(currentView.getFullYear() - 1, 1, 1)); }} className="p-1.5 hover:bg-white/10 rounded-full transition-colors"><ChevronLeft className="w-5 h-5 text-gray-400"/></button>
+             <div className="font-extrabold text-sm text-white uppercase tracking-widest">{currentView.getFullYear()}</div>
+             <button onClick={(e) => { e.stopPropagation(); setViewDate(new Date(currentView.getFullYear() + 1, 1, 1)); }} className="p-1.5 hover:bg-white/10 rounded-full transition-colors"><ChevronRight className="w-5 h-5 text-gray-400"/></button>
+           </div>
+           {monthNames.map((m, i) => (
+             <button
+               key={m}
+               onClick={(e) => {
+                 e.stopPropagation();
+                 onSelectDate(new Date(currentView.getFullYear(), i, 1));
+               }}
+               className={`py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors ${currentDate.getMonth() === i && currentDate.getFullYear() === currentView.getFullYear() ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+             >
+               {m.substring(0,3)}
+             </button>
+           ))}
+         </div>
+       ) : (
+         <>
+           <div className="flex justify-between items-center mb-5">
+             <button onClick={prevMonth} className="p-1.5 hover:bg-white/10 rounded-full transition-colors"><ChevronLeft className="w-5 h-5 text-gray-400"/></button>
+             <div className="font-extrabold text-sm text-white uppercase tracking-widest">{monthNames[currentView.getMonth()]} {currentView.getFullYear()}</div>
+             <button onClick={nextMonth} className="p-1.5 hover:bg-white/10 rounded-full transition-colors"><ChevronRight className="w-5 h-5 text-gray-400"/></button>
+           </div>
+           
+           <div className="grid grid-cols-7 gap-1 mb-2 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">
+             {dayNames.map(d => <div key={d} className="py-1">{d}</div>)}
+           </div>
+           
+           <div className="grid grid-cols-7 gap-1 text-center text-sm font-semibold">
+             {Array.from({ length: startDay }).map((_, i) => <div key={`empty-${i}`} />)}
+             {Array.from({ length: daysInMonth }).map((_, i) => {
+               const d = i + 1;
+               const selected = isSelected(d);
+               const today = isToday(d);
+               return (
+                 <button 
+                   key={d}
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     onSelectDate(new Date(currentView.getFullYear(), currentView.getMonth(), d));
+                   }}
+                   className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center transition-colors ${selected ? 'bg-white text-black font-extrabold shadow-[0_0_10px_rgba(255,255,255,0.3)]' : today ? 'text-[#38bdf8] font-extrabold bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20' : 'text-gray-400 hover:bg-white/10 hover:text-white'} `}
+                 >
+                   {d}
+                 </button>
+               );
+             })}
+           </div>
+         </>
+       )}
+
+       <div className="mt-5 pt-4 border-t border-white/10 flex justify-end">
+         <button 
+           onClick={(e) => {
+             e.stopPropagation();
+             onSelectDate(new Date());
+             onClose();
+           }}
+           className="text-[11px] font-black text-[#38bdf8] hover:text-white transition-colors uppercase tracking-widest px-3 py-1.5 hover:bg-white/10 rounded-lg border border-transparent"
+         >
+           Hoy
+         </button>
+       </div>
+    </div>
+  )
+};
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -10,9 +129,12 @@ export default function Dashboard() {
   // Filters
   const [filterType, setFilterType] = useState('month'); // day, week, month, year
   const [referenceDate, setReferenceDate] = useState(new Date());
+  const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
+  const menuRef = React.useRef(null);
 
   // Modal for breakdown
   const [selectedHairdresser, setSelectedHairdresser] = useState(null);
+  const [showNoShowsModal, setShowNoShowsModal] = useState(false);
 
   // Helper to normalize date
   const formatDate = (date) => {
@@ -56,7 +178,7 @@ export default function Dashboard() {
     try {
       // Citas dentro del rango. Aseguramos que la fechaInicio contenga fechas hasta fin de dia.
       const [{ data: citasData }, { data: peluquerosData }, { data: cortesData }] = await Promise.all([
-        supabase.from('Citas').select('*, Cliente(*)').gte('fechaInicio', `${periodBounds.start}T00:00:00`).lte('fechaInicio', `${periodBounds.end}T23:59:59`),
+        supabase.from('Citas').select('*, Cliente(*)').gte('fechaInicio', `${periodBounds.start} 00:00:00`).lte('fechaInicio', `${periodBounds.end} 23:59:59`),
         supabase.from('Peluqueros').select('*'),
         supabase.from('Tipo Corte').select('*')
       ]);
@@ -82,6 +204,16 @@ export default function Dashboard() {
   useEffect(() => {
     loadData();
   }, [periodBounds]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsDateMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const prevPeriod = () => {
     const next = new Date(referenceDate);
@@ -117,12 +249,12 @@ export default function Dashboard() {
   // Total Citas Atendidas (Confirmado y que no es no-show: asistencia puede ser null o true, asumimos si no es falso, es atendido)
   const attendedCitas = confirmedCitas.filter(c => c.asistencia !== false);
   
-  // No shows: Confirmado pero no asistió
-  const noShows = confirmedCitas.filter(c => c.asistencia === false);
+  // No shows: Confirmado pero no asistió o simplemente no asistió
+  const noShows = validCitas.filter(c => c.asistencia === false);
 
   const totalRevenue = attendedCitas.reduce((acc, c) => acc + (Number(c.precio) || 0), 0);
 
-  // Group by Hairdresser
+  // Group by Hairdresser and Services
   const byHairdresser = {};
   Object.keys(data.peluqueros).forEach(id => {
     byHairdresser[id] = { id, name: data.peluqueros[id], count: 0, revenue: 0, servicesBreakdown: {} };
@@ -162,7 +294,20 @@ export default function Dashboard() {
   const popularHour = Object.keys(hourCounts).reduce((a, b) => hourCounts[a] > hourCounts[b] ? a : b, '');
   const bestHourCount = hourCounts[popularHour] || 0;
 
-  // Render Modal
+  // --- Advanced Metrics ---
+  const numDays = Math.max(1, Math.round((new Date(periodBounds.end).getTime() - new Date(periodBounds.start).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+  const numHairdressers = Object.keys(data.peluqueros).length || 1;
+  const totalOccupiedMins = attendedCitas.reduce((acc, c) => acc + (c.durationMins || 30), 0);
+  const totalAvailableMins = numHairdressers * numDays * 480; // 8h shift standard
+  const capacityPer = Math.min(100, Math.round((totalOccupiedMins / totalAvailableMins) * 100));
+
+  const avgTicket = attendedCitas.length > 0 ? (totalRevenue / attendedCitas.length).toFixed(2) : 0;
+  const totalCitasCount = data.citas.length || 0;
+  const cancelledCount = data.citas.filter(c => c.cancelada).length;
+  const cancellationRate = totalCitasCount > 0 ? Math.round((cancelledCount / totalCitasCount) * 100) : 0;
+  const avgServiceTime = attendedCitas.length > 0 ? Math.round(totalOccupiedMins / attendedCitas.length) : 0;
+
+  // Render Modals
   const HairdresserDetailModal = () => {
     if (!selectedHairdresser) return null;
     const hd = byHairdresser[selectedHairdresser];
@@ -198,6 +343,45 @@ export default function Dashboard() {
     );
   };
 
+  const NoShowsModal = () => {
+    if (!showNoShowsModal) return null;
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowNoShowsModal(false)} />
+        <div className="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[80vh] flex flex-col">
+          <div className="flex justify-between items-center mb-6 shrink-0 border-b border-white/5 pb-4">
+            <h3 className="text-xl font-black uppercase tracking-tight text-white flex items-center gap-2">
+              <UserX className="w-5 h-5 text-red-500" /> No Shows
+            </h3>
+            <button onClick={() => setShowNoShowsModal(false)} className="text-gray-500 hover:text-white transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
+            {noShows.map(ns => {
+              const d = new Date(ns.fechaInicio);
+              const corteName = data.cortes[ns.corte || ns.idCorte] || ns.tipo_corte || 'Servicio';
+              return (
+                <div key={ns.idCita} className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
+                  <div className="flex justify-between items-start">
+                    <span className="font-bold text-white text-sm">{ns.Cliente?.nombreCliente || 'Sin nombre'}</span>
+                    <span className="text-[10px] font-black uppercase text-red-500 bg-red-500/10 px-2 py-0.5 rounded">No Vino</span>
+                  </div>
+                  <span className="text-xs text-gray-400 font-medium">Tel: {ns.Cliente?.telefono}</span>
+                  <div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">{corteName}</span>
+                    <span className="text-[10px] font-black text-white">{d.toLocaleDateString('es-ES')} - {d.getHours().toString().padStart(2, '0')}:{d.getMinutes().toString().padStart(2, '0')}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   return (
     <div className="h-full w-full bg-[#0a0a0a] text-white font-sans flex flex-col overflow-hidden max-w-full">
       {/* Dark elegant grid background */}
@@ -208,10 +392,10 @@ export default function Dashboard() {
         {/* Header & Controls */}
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0 pb-2 sm:pb-4 border-b border-white/10">
           <div>
-             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-none mb-2 text-white">
+             <h1 className="text-5xl font-bold tracking-normal leading-none mb-2 text-white" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
                Dashboard
              </h1>
-             <p className="text-xs font-bold uppercase tracking-widest text-[#38bdf8] opacity-80">Rendimiento y Métricas clave</p>
+             <p className="text-xs font-bold uppercase tracking-widest text-[#38bdf8] opacity-80 mt-1">Rendimiento y Métricas clave</p>
           </div>
 
           <div className="flex flex-col items-end gap-3 w-full sm:w-auto">
@@ -227,9 +411,29 @@ export default function Dashboard() {
               ))}
             </div>
             
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-1.5 shadow-sm w-full sm:w-auto justify-between sm:justify-start">
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-1.5 shadow-sm w-full sm:w-auto justify-between sm:justify-start relative" ref={menuRef}>
               <button onClick={prevPeriod} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-gray-400 hover:text-white"/></button>
-              <div className="font-bold text-sm min-w-[140px] text-center text-white capitalize">{getLabel()}</div>
+              
+              <button 
+                onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
+                className="font-bold text-sm min-w-[140px] text-center text-white capitalize px-2 py-1 hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <CalendarIcon className="w-4 h-4 text-gray-400" />
+                {getLabel()}
+              </button>
+
+              {isDateMenuOpen && (
+                <CustomDatePicker 
+                  currentDate={referenceDate}
+                  filterType={filterType}
+                  onSelectDate={(d) => {
+                    setReferenceDate(d);
+                    setIsDateMenuOpen(false);
+                  }}
+                  onClose={() => setIsDateMenuOpen(false)}
+                />
+              )}
+
               <button onClick={nextPeriod} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ChevronRight className="w-5 h-5 text-gray-400 hover:text-white"/></button>
             </div>
           </div>
@@ -260,11 +464,16 @@ export default function Dashboard() {
                 <div className="text-2xl sm:text-4xl lg:text-5xl font-black text-white">{totalRevenue}€</div>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 flex flex-col justify-center relative overflow-hidden backdrop-blur-md">
+              <div 
+                onClick={() => noShows.length > 0 && setShowNoShowsModal(true)}
+                className={`bg-white/5 border border-white/10 rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 flex flex-col justify-center relative overflow-hidden backdrop-blur-md transition-colors ${noShows.length > 0 ? 'hover:bg-white/10 cursor-pointer' : ''}`}
+              >
                 <div className="absolute right-[-10px] top-[-10px] sm:right-0 sm:top-0 opacity-10">
                   <AlertCircle className="w-16 h-16 sm:w-24 sm:h-24" />
                 </div>
-                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-400 mb-1 sm:mb-2">No Shows</p>
+                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-400 mb-1 sm:mb-2">
+                  No Shows {noShows.length > 0 && <span className="lowercase font-normal ml-1">(ver)</span>}
+                </p>
                 <div className="text-3xl sm:text-5xl font-black text-red-500">{noShows.length}</div>
               </div>
             </div>
@@ -272,25 +481,72 @@ export default function Dashboard() {
             {/* Bottom Section: Flexible grid for Hairdressers and Trends */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 overflow-hidden">
                
-               {/* Hairdressers List */}
-               <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
+               {/* Hairdressers List & Charts */}
+               <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md overflow-hidden">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
-                 <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                   {Object.values(byHairdresser).map(hd => (
-                     <div 
-                       key={hd.id} 
-                       onClick={() => hd.count > 0 && setSelectedHairdresser(hd.id)}
-                       className={`flex flex-col justify-between p-4 rounded-2xl border transition-all ${hd.count > 0 ? 'bg-black border-white/20 hover:border-[#38bdf8] cursor-pointer' : 'bg-white/5 border-white/5 opacity-50'}`}
-                     >
-                       <div className="mb-4">
-                         <h3 className="font-black text-sm uppercase truncate mb-1">{hd.name}</h3>
-                         <p className="text-[10px] font-bold text-[#38bdf8] uppercase">{hd.count} serv.</p>
+                 
+                 <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-6 custom-scrollbar">
+                   {/* Small Summary Cards */}
+                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
+                     {Object.values(byHairdresser).map(hd => (
+                       <div 
+                         key={hd.id} 
+                         onClick={() => hd.count > 0 && setSelectedHairdresser(hd.id)}
+                         className={`flex flex-col justify-between p-3 rounded-2xl border transition-all ${hd.count > 0 ? 'bg-black border-white/20 hover:border-[#38bdf8] cursor-pointer' : 'bg-white/5 border-white/5 opacity-50'}`}
+                       >
+                         <h3 className="font-black text-xs uppercase truncate mb-2">{hd.name}</h3>
+                         <div className="flex justify-between items-baseline">
+                           <p className="text-[9px] font-bold text-[#38bdf8] uppercase">{hd.count} SERVICIOS</p>
+                           <p className="text-sm font-bold bg-white/5 px-2 py-0.5 rounded text-white">{hd.revenue}€</p>
+                         </div>
                        </div>
-                       <div className="text-xl font-bold bg-white/5 px-3 py-1 rounded-xl w-fit">
-                         {hd.revenue}€
-                       </div>
-                     </div>
-                   ))}
+                     ))}
+                   </div>
+
+                   {/* Bar Charts */}
+                   {(() => {
+                      const hdList = Object.values(byHairdresser);
+                      if (hdList.length === 0) return null;
+                      const maxCount = Math.max(...hdList.map(h => h.count));
+                      const maxReactCount = maxCount || 1; // prevent div by zero
+                      const maxRev = Math.max(...hdList.map(h => h.revenue));
+                      const maxReactRev = maxRev || 1;
+                      
+                      return (
+                        <div className="flex flex-col gap-6 border-t border-white/10 pt-4 shrink-0">
+                          {/* Cortes Chart */}
+                          <div>
+                            <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">Volumen de Servicios</h3>
+                            <div className="flex flex-col gap-2">
+                              {hdList.sort((a,b) => b.count - a.count).map(hd => (
+                                <div key={hd.id} className="flex items-center gap-2">
+                                  <span className="w-16 text-[9px] font-bold text-gray-300 uppercase truncate text-right">{hd.name}</span>
+                                  <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden flex items-center">
+                                    <div className="h-full bg-[#38bdf8] rounded-full transition-all duration-1000 ease-out" style={{ width: `${(hd.count / maxReactCount) * 100}%` }} />
+                                  </div>
+                                  <span className="w-8 text-[9px] font-black text-[#38bdf8] text-left">{hd.count}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {/* Revenue Chart */}
+                          <div>
+                            <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3">Facturación Generada</h3>
+                            <div className="flex flex-col gap-2">
+                              {hdList.sort((a,b) => b.revenue - a.revenue).map(hd => (
+                                <div key={hd.id} className="flex items-center gap-2">
+                                  <span className="w-16 text-[9px] font-bold text-gray-300 uppercase truncate text-right">{hd.name}</span>
+                                  <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden flex items-center">
+                                    <div className="h-full bg-green-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${(hd.revenue / maxReactRev) * 100}%` }} />
+                                  </div>
+                                  <span className="w-10 text-[9px] font-black text-green-400 text-left">{hd.revenue}€</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                   })()}
                  </div>
                </div>
 
@@ -299,24 +555,55 @@ export default function Dashboard() {
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Tendencias del Periodo</h2>
                   
                   <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
-                    <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-                       <div>
-                         <p className="text-[9px] font-bold uppercase text-gray-500 tracking-wider">Día Más Fuerte</p>
-                         <p className="text-base font-black truncate text-white">{bestDayCount > 0 ? daysMap[popularDayIndex] : '-'}</p>
-                       </div>
-                       <div className="bg-[#38bdf8]/10 text-[#38bdf8] w-12 h-12 rounded-full flex items-center justify-center font-black">
-                         {bestDayCount}
-                       </div>
-                    </div>
+                    {filterType !== 'day' && (
+                      <>
+                        <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-[9px] font-bold uppercase text-gray-500 tracking-wider">Día Más Fuerte</p>
+                            <p className="text-base font-black truncate text-white">{bestDayCount > 0 ? daysMap[popularDayIndex] : '-'}</p>
+                          </div>
+                          <div className="bg-[#38bdf8]/10 text-[#38bdf8] w-12 h-12 rounded-full flex items-center justify-center font-black">
+                            {bestDayCount}
+                          </div>
+                        </div>
 
-                    <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-                       <div>
-                         <p className="text-[9px] font-bold uppercase text-gray-500 tracking-wider">Hora Más Fuerte</p>
-                         <p className="text-base font-black truncate text-white">{bestHourCount > 0 ? popularHour : '-'}</p>
-                       </div>
-                       <div className="bg-amber-500/10 text-amber-500 w-12 h-12 rounded-full flex items-center justify-center font-black">
-                         {bestHourCount}
-                       </div>
+                        <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-[9px] font-bold uppercase text-gray-500 tracking-wider">Hora Más Fuerte</p>
+                            <p className="text-base font-black truncate text-white">{bestHourCount > 0 ? popularHour : '-'}</p>
+                          </div>
+                          <div className="bg-amber-500/10 text-amber-500 w-12 h-12 rounded-full flex items-center justify-center font-black">
+                            {bestHourCount}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between">
+                        <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider mb-1">Capacidad</p>
+                        <div className="flex items-end justify-between">
+                          <span className="text-lg font-black text-white">{capacityPer}%</span>
+                          <div className="w-12 bg-white/10 h-1.5 rounded-full overflow-hidden mb-1">
+                            <div className="bg-[#38bdf8] h-full" style={{ width: `${capacityPer}%` }}></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between">
+                        <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider mb-1">Ticket Medio</p>
+                        <span className="text-lg font-black text-green-400">{avgTicket}€</span>
+                      </div>
+
+                      <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between">
+                        <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider mb-1">Tasa Cancelación</p>
+                        <span className="text-lg font-black text-red-400">{cancellationRate}%</span>
+                      </div>
+
+                      <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between">
+                        <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider mb-1">Tiempo Medio</p>
+                        <span className="text-lg font-black text-amber-500">{avgServiceTime} min</span>
+                      </div>
                     </div>
 
                     <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between mt-auto">
@@ -340,6 +627,7 @@ export default function Dashboard() {
       
       {/* Modals outside to avoid z-index and overflow clipping */}
       <HairdresserDetailModal />
+      <NoShowsModal />
     </div>
   );
 }
