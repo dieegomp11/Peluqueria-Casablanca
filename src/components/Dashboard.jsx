@@ -488,7 +488,7 @@ export default function Dashboard() {
                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-[2] min-h-[300px] md:min-h-0 overflow-hidden">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
                  
-                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-6 pr-1 pb-8" style={{ WebkitOverflowScrolling: 'touch' }}>
+                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-6 pr-1 pb-8 dashboard-scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
                    {/* Small Summary Cards */}
                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
                      {Object.values(byHairdresser).map(hd => (
@@ -555,7 +555,7 @@ export default function Dashboard() {
                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-1 min-h-[400px] md:min-h-0 overflow-hidden">
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Tendencias del Periodo</h2>
                   
-                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1 pb-8" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1 pb-8 dashboard-scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
                     {filterType !== 'day' && (
                       <div className="flex flex-col gap-3 shrink-0">
                         <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex items-center justify-between">

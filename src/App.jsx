@@ -63,10 +63,11 @@ function App() {
       // Whitelist the agenda grid, modal scroll area, icons, and any fixed-position modals/overlays
       const isScrollGrid = e.target.closest('.agenda-scroll-container');
       const isScrollModal = e.target.closest('.modal-scroll-container');
+      const isDashboardScroll = e.target.closest('.dashboard-scroll-container');
       const isIcon = e.target.closest('.lucide');
       
       // If we're inside a whitelisted scrollable area, don't prevent default
-      if (isScrollGrid || isScrollModal || isIcon) return;
+      if (isScrollGrid || isScrollModal || isDashboardScroll || isIcon) return;
       
       // Check if it's a fixed element (like the modal backdrop) - usually we don't want to scroll background
       const isFixed = window.getComputedStyle(e.target).position === 'fixed' || e.target.closest('[style*="position: fixed"]');
