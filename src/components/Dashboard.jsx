@@ -244,13 +244,15 @@ export default function Dashboard() {
   // --- Compute KPIs ---
   // Only completely non-cancelled items.
   const validCitas = data.citas.filter(c => !c.cancelada);
-  const confirmedCitas = validCitas.filter(c => c.confirmado === true);
   
-  // Total Citas Atendidas (Confirmado y que no es no-show: asistencia puede ser null o true, asumimos si no es falso, es atendido)
-  const attendedCitas = confirmedCitas.filter(c => c.asistencia !== false);
+  // Total Citas Atendidas (Strictly by attendance status)
+  const attendedCitas = validCitas.filter(c => c.asistencia === true);
   
-  // No shows: Confirmado pero no asistió o simplemente no asistió
+  // No shows: Citas that were marked as NOT attended
   const noShows = validCitas.filter(c => c.asistencia === false);
+  
+  // Confirmed appointments (useful for "incoming" services count)
+  const confirmedCitas = validCitas.filter(c => c.confirmado === true);
 
   const totalRevenue = attendedCitas.reduce((acc, c) => acc + (Number(c.precio) || 0), 0);
 
