@@ -400,7 +400,7 @@ export default function Dashboard() {
              <p className="text-xs font-bold uppercase tracking-widest text-[#38bdf8] opacity-80 mt-1">Rendimiento y Métricas clave</p>
           </div>
 
-          <div className="flex flex-col items-end gap-3 w-full sm:w-auto">
+          <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
             <div className="flex bg-white/5 p-1 rounded-xl w-full sm:w-auto border border-white/10">
               {['day', 'week', 'month', 'year'].map(ft => (
                 <button 
@@ -487,7 +487,7 @@ export default function Dashboard() {
                <div className="md:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md overflow-hidden">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
                  
-                 <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-6 custom-scrollbar">
+                 <div className="flex-1 flex flex-col gap-6 overflow-hidden">
                    {/* Small Summary Cards */}
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
                      {Object.values(byHairdresser).map(hd => (
@@ -556,7 +556,7 @@ export default function Dashboard() {
                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Tendencias del Periodo</h2>
                   
-                  <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
+                  <div className="flex-1 flex flex-col gap-4 overflow-hidden pr-1">
                     {filterType !== 'day' && (
                       <>
                         <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
