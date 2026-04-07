@@ -449,7 +449,7 @@ export default function Dashboard() {
           <div className="flex-1 min-h-0 flex flex-col gap-4 sm:gap-6 overflow-hidden">
             
             {/* Top Cards: Core KPIs */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 shrink-0 h-24 sm:h-32">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 shrink-0 h-20 md:h-28">
               <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 flex flex-col justify-center relative overflow-hidden backdrop-blur-md">
                 <div className="absolute right-[-10px] top-[-10px] sm:right-0 sm:top-0 opacity-10">
                   <Scissors className="w-16 h-16 sm:w-24 sm:h-24" />
@@ -481,15 +481,15 @@ export default function Dashboard() {
             </div>
 
             {/* Bottom Section: Flexible grid for Hairdressers and Trends */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 flex-1 min-h-0 overflow-hidden">
                
                {/* Hairdressers List & Charts */}
-               <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md overflow-hidden">
+               <div className="md:col-span-2 bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md overflow-hidden">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
                  
                  <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-6 custom-scrollbar">
                    {/* Small Summary Cards */}
-                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
                      {Object.values(byHairdresser).map(hd => (
                        <div 
                          key={hd.id} 
