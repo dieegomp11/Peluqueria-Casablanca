@@ -395,10 +395,10 @@ export default function Dashboard() {
         {/* Header & Controls */}
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0 pb-2 sm:pb-4 border-b border-white/10">
           <div>
-             <h1 className="text-5xl font-bold tracking-normal leading-none mb-2 text-white" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
+             <h1 className="text-5xl font-bold tracking-normal leading-none text-white" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
                Dashboard
              </h1>
-             <p className="text-xs font-bold uppercase tracking-widest text-[#38bdf8] opacity-80 mt-1">Rendimiento y Métricas clave</p>
+
           </div>
 
           <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
@@ -557,7 +557,7 @@ export default function Dashboard() {
                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col min-h-0 backdrop-blur-md">
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Tendencias del Periodo</h2>
                   
-                  <div className="flex-1 flex flex-col gap-4 overflow-hidden pr-1">
+                  <div className="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
                     {filterType !== 'day' && (
                       <>
                         <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
