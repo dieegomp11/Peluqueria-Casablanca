@@ -315,8 +315,9 @@ export default function Dashboard() {
     const hd = byHairdresser[selectedHairdresser];
     
     return createPortal(
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-        <div className="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] shadow-2xl animate-in zoom-in-95">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 pb-20 sm:p-6 transition-all duration-300">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedHairdresser(null)} />
+        <div className="relative bg-white rounded-[2rem] w-full max-w-sm overflow-hidden flex flex-col max-h-[70vh] shadow-2xl animate-in zoom-in-95">
           <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-gray-50 flex-shrink-0">
             <div>
               <h3 className="font-extrabold text-black uppercase tracking-tight text-lg leading-none">{hd.name}</h3>
@@ -559,22 +560,22 @@ export default function Dashboard() {
                   <div className="flex-1 flex flex-col gap-4 overflow-hidden pr-1">
                     {filterType !== 'day' && (
                       <>
-                        <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                        <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
                           <div>
-                            <p className="text-[9px] font-bold uppercase text-gray-500 tracking-wider">Día Más Fuerte</p>
-                            <p className="text-base font-black truncate text-white">{bestDayCount > 0 ? daysMap[popularDayIndex] : '-'}</p>
+                            <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider">Día Más Fuerte</p>
+                            <p className="text-sm font-black truncate text-white">{bestDayCount > 0 ? daysMap[popularDayIndex] : '-'}</p>
                           </div>
-                          <div className="bg-[#38bdf8]/10 text-[#38bdf8] w-12 h-12 rounded-full flex items-center justify-center font-black">
+                          <div className="bg-[#38bdf8]/10 text-[#38bdf8] w-10 h-10 rounded-full flex items-center justify-center font-black text-xs">
                             {bestDayCount}
                           </div>
                         </div>
 
-                        <div className="bg-black/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                        <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
                           <div>
-                            <p className="text-[9px] font-bold uppercase text-gray-500 tracking-wider">Hora Más Fuerte</p>
-                            <p className="text-base font-black truncate text-white">{bestHourCount > 0 ? popularHour : '-'}</p>
+                            <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider">Hora Más Fuerte</p>
+                            <p className="text-sm font-black truncate text-white">{bestHourCount > 0 ? popularHour : '-'}</p>
                           </div>
-                          <div className="bg-amber-500/10 text-amber-500 w-12 h-12 rounded-full flex items-center justify-center font-black">
+                          <div className="bg-amber-500/10 text-amber-500 w-10 h-10 rounded-full flex items-center justify-center font-black text-xs">
                             {bestHourCount}
                           </div>
                         </div>
