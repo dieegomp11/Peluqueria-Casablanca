@@ -265,6 +265,161 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
   );
 }
 
+const TIME_OPTIONS = [];
+for (let h = 7; h <= 23; h++) {
+  TIME_OPTIONS.push(`${h.toString().padStart(2,'0')}:00`);
+  if (h < 23) TIME_OPTIONS.push(`${h.toString().padStart(2,'0')}:30`);
+}
+
+// timetz "HH:MM:SS+00" → "HH:MM"
+const timetzToHHMM = (t) => t ? t.substring(0, 5) : '';
+
+function HorarioModal({ isOpen, onClose, onSave, horarioData, currentDate }) {
+  const existing = horarioData;
+  const [abierto, setAbierto] = useState(existing?.abierto ?? false);
+  const [aperMañ, setAperMañ]   = useState(timetzToHHMM(existing?.horaAperturaMañana) || '09:00');
+  const [cierreMañ, setCierreMañ] = useState(timetzToHHMM(existing?.horaCierreMañana) || '14:00');
+  const [hasTarde, setHasTarde] = useState(!!(existing?.horaAperturaTarde));
+  const [aperTarde, setAperTarde]   = useState(timetzToHHMM(existing?.horaAperturaTarde) || '17:00');
+  const [cierreTarde, setCierreTarde] = useState(timetzToHHMM(existing?.horaCierreTarde) || '21:00');
+  const [isContinuo, setIsContinuo] = useState(!existing?.horaCierreMañana && !existing?.horaAperturaTarde && existing?.abierto);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    try {
+      const payload = {
+        abierto,
+        horaAperturaMañana: abierto ? aperMañ : null,
+        horaCierreMañana:   abierto && !isContinuo ? cierreMañ : null,
+        horaAperturaTarde:  abierto && !isContinuo && hasTarde ? aperTarde : null,
+        horaCierreTarde:    abierto ? (isContinuo ? cierreMañ : (hasTarde ? cierreTarde : null)) : null,
+      };
+      // En horario continuo usamos cierreMañ como cierre único y los campos de tarde quedan null
+      if (abierto && isContinuo) {
+        payload.horaCierreTarde = cierreMañ;
+        payload.horaAperturaMañana = aperMañ;
+        payload.horaCierreMañana = null;
+        payload.horaAperturaTarde = null;
+      }
+      await onSave(payload);
+    } catch (err) {
+      setError(err?.message || 'Error al guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const dayLabel = currentDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/30">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-sm font-black uppercase tracking-tight text-gray-900">Horario · <span className="capitalize font-semibold text-gray-500">{dayLabel}</span></h2>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {error && <div className="p-2.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[10px] font-bold">⚠ {error}</div>}
+
+          {/* Toggle Abierto / Cerrado */}
+          <div className="flex items-center justify-between p-3 rounded-xl border-2 border-gray-100">
+            <span className="text-sm font-bold text-gray-800">Estado del día</span>
+            <button
+              type="button"
+              onClick={() => setAbierto(v => !v)}
+              className={`relative w-14 h-7 rounded-full transition-colors duration-200 ${abierto ? 'bg-green-500' : 'bg-gray-300'}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform duration-200 ${abierto ? 'translate-x-7' : 'translate-x-0'}`} />
+            </button>
+            <span className={`text-sm font-black uppercase tracking-wide ${abierto ? 'text-green-600' : 'text-red-500'}`}>{abierto ? 'Abierto' : 'Cerrado'}</span>
+          </div>
+
+          {abierto && (
+            <>
+              {/* Toggle Continuo / Split */}
+              <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-gray-50 transition-colors">
+                <div className="relative flex items-center justify-center w-5 h-5 border-2 border-gray-300 rounded overflow-hidden">
+                  <input type="checkbox" checked={isContinuo} onChange={e => setIsContinuo(e.target.checked)} className="sr-only" />
+                  {isContinuo && <div className="w-full h-full bg-black flex items-center justify-center"><svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg></div>}
+                </div>
+                <span className="text-sm font-bold text-gray-800">Horario continuo (sin siesta)</span>
+              </label>
+
+              {/* Horario mañana */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{isContinuo ? 'Apertura y Cierre' : 'Turno Mañana'}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-gray-400 mb-1 block">Apertura</label>
+                    <select value={aperMañ} onChange={e => setAperMañ(e.target.value)} className="w-full border-2 border-gray-100 rounded-xl p-2.5 text-sm font-medium outline-none focus:border-black bg-white">
+                      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-gray-400 mb-1 block">Cierre</label>
+                    <select value={cierreMañ} onChange={e => setCierreMañ(e.target.value)} className="w-full border-2 border-gray-100 rounded-xl p-2.5 text-sm font-medium outline-none focus:border-black bg-white">
+                      {TIME_OPTIONS.filter(t => t > aperMañ).map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Turno tarde (solo si no es continuo) */}
+              {!isContinuo && (
+                <>
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="relative flex items-center justify-center w-5 h-5 border-2 border-gray-300 rounded overflow-hidden">
+                      <input type="checkbox" checked={hasTarde} onChange={e => setHasTarde(e.target.checked)} className="sr-only" />
+                      {hasTarde && <div className="w-full h-full bg-black flex items-center justify-center"><svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg></div>}
+                    </div>
+                    <span className="text-sm font-bold text-gray-800">Abrir turno de tarde</span>
+                  </label>
+
+                  {hasTarde && (
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Turno Tarde</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-bold uppercase text-gray-400 mb-1 block">Apertura</label>
+                          <select value={aperTarde} onChange={e => setAperTarde(e.target.value)} className="w-full border-2 border-gray-100 rounded-xl p-2.5 text-sm font-medium outline-none focus:border-black bg-white">
+                            {TIME_OPTIONS.filter(t => t > cierreMañ).map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-bold uppercase text-gray-400 mb-1 block">Cierre</label>
+                          <select value={cierreTarde} onChange={e => setCierreTarde(e.target.value)} className="w-full border-2 border-gray-100 rounded-xl p-2.5 text-sm font-medium outline-none focus:border-black bg-white">
+                            {TIME_OPTIONS.filter(t => t > aperTarde).map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          <div className="pt-1 flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 px-4 font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Cancelar</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 px-4 font-bold text-white bg-black hover:bg-slate-900 rounded-xl transition-all shadow-md disabled:opacity-50">
+              {saving ? 'Guardando…' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Agenda() {
   const [currentDate, setCurrentDate] = useState(today);
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
@@ -283,6 +438,7 @@ export default function Agenda() {
   const [confirmCancelId, setConfirmCancelId] = useState(null);
   const [confirmDeleteAbsenceId, setConfirmDeleteAbsenceId] = useState(null);
   const [horarioData, setHorarioData] = useState(null);
+  const [isHorarioModalOpen, setIsHorarioModalOpen] = useState(false);
   const [waitlistEntries, setWaitlistEntries] = useState([]);
   const [waitlistPopup, setWaitlistPopup] = useState({ open: false, entries: [], time: '', hairdresser: '' });
 
@@ -359,6 +515,20 @@ export default function Agenda() {
         loadAgenda(); // Revert on failure
       }
     }
+  };
+
+  const handleSaveHorario = async (payload) => {
+    const dateStr = formatDate(currentDate);
+    // Si ya existe el registro, update; si no, insert
+    if (horarioData) {
+      const { error } = await supabase.from('Horario').update(payload).eq('idDia', horarioData.idDia);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('Horario').insert([{ dia: dateStr, ...payload }]);
+      if (error) throw error;
+    }
+    setIsHorarioModalOpen(false);
+    loadAgenda();
   };
 
   async function loadAgenda() {
@@ -613,6 +783,20 @@ export default function Agenda() {
           <div className="text-right flex items-end gap-6">
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsHorarioModalOpen(true)}
+                  className={`px-3 py-1 font-bold text-sm rounded-lg transition-all flex items-center gap-1.5 shadow-sm hover:shadow border-2 ${
+                    horarioData?.abierto === true
+                      ? 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100'
+                      : horarioData?.abierto === false
+                      ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                      : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${horarioData?.abierto === true ? 'bg-green-500' : horarioData?.abierto === false ? 'bg-red-400' : 'bg-gray-300'}`} />
+                  {horarioData?.abierto === true ? 'Abierto' : horarioData?.abierto === false ? 'Cerrado' : 'Sin horario'}
+                </button>
+
                 <button
                   onClick={() => setIsAbsenceModalOpen(true)}
                   className="px-3 py-1 font-bold text-sm bg-black text-white rounded-lg transition-all hover:bg-slate-800 flex items-center gap-1.5 shadow-sm hover:shadow"
@@ -1290,6 +1474,15 @@ export default function Agenda() {
           hairdresser={waitlistPopup.hairdresser}
           onClose={() => setWaitlistPopup({ open: false, entries: [], time: '', hairdresser: '' })}
           onRefresh={loadAgenda}
+        />
+      )}
+      {isHorarioModalOpen && (
+        <HorarioModal
+          isOpen={isHorarioModalOpen}
+          onClose={() => setIsHorarioModalOpen(false)}
+          onSave={handleSaveHorario}
+          horarioData={horarioData}
+          currentDate={currentDate}
         />
       )}
     </div>
