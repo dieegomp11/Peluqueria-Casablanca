@@ -282,6 +282,7 @@ export default function Agenda() {
 
   const [confirmCancelId, setConfirmCancelId] = useState(null);
   const [confirmDeleteAbsenceId, setConfirmDeleteAbsenceId] = useState(null);
+  const [horarioData, setHorarioData] = useState(null);
   const [waitlistEntries, setWaitlistEntries] = useState([]);
   const [waitlistPopup, setWaitlistPopup] = useState({ open: false, entries: [], time: '', hairdresser: '' });
 
@@ -363,12 +364,26 @@ export default function Agenda() {
   async function loadAgenda() {
     setLoading(true);
     try {
-      const [{ data: citasData }, { data: absencesData }, { data: peluquerosData }, { data: cortesData }] = await Promise.all([
+      const dateStr = formatDate(currentDate);
+      const [{ data: citasData }, { data: absencesData }, { data: peluquerosData }, { data: cortesData }, { data: horarioRow }] = await Promise.all([
         supabase.from('Citas').select('*, Cliente(*)'),
         supabase.from('Ausencia').select('*'),
         supabase.from('Peluqueros').select('*'),
-        supabase.from('Tipo Corte').select('*')
+        supabase.from('Tipo Corte').select('*'),
+        supabase.from('Horario').select('*').eq('dia', dateStr).maybeSingle()
       ]);
+      setHorarioData(horarioRow || null);
+
+      // timetz llega como "HH:MM:SS+00" (UTC) → convertir a minutos locales del navegador
+      const parseHMinsLocal = (t) => {
+        if (!t) return null;
+        const [h, m] = t.substring(0, 5).split(':').map(Number);
+        return (h * 60 + m) - new Date().getTimezoneOffset();
+      };
+      const horCierreMañ  = parseHMinsLocal(horarioRow?.horaCierreMañana);
+      const horApertTarde = parseHMinsLocal(horarioRow?.horaAperturaTarde);
+      const horCierreTarde = parseHMinsLocal(horarioRow?.horaCierreTarde);
+      const horApertMañ   = parseHMinsLocal(horarioRow?.horaAperturaMañana);
 
       const { data: waitlistData } = await supabase
         .from('Lista Espera')
@@ -396,13 +411,15 @@ export default function Agenda() {
             const h = d.getHours();
             const m = d.getMinutes();
             const totalMins = h * 60 + m;
-            const isSat = d.getDay() === 6;
 
-            // Categorize based on absolute time
-            if ((isSat && h >= 14) || (!isSat && (h >= 21 || (h === 20 && m > 30)))) {
-              timeVal = 'extra';
-            } else if (!isSat && (totalMins >= 14 * 60 && totalMins < 17 * 60)) {
+            // Categorize based on Horario data
+            const inSiesta = horCierreMañ !== null && horApertTarde !== null && totalMins >= horCierreMañ && totalMins < horApertTarde;
+            const closingMins = horCierreTarde ?? horCierreMañ;
+            const isExtra = (closingMins !== null && totalMins >= closingMins) || (horApertMañ !== null && totalMins < horApertMañ);
+            if (inSiesta) {
               timeVal = 'extra_mid';
+            } else if (isExtra) {
+              timeVal = 'extra';
             } else {
               timeVal = c.hora_inicio ? c.hora_inicio.substring(0, 5) : `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
             }
@@ -510,15 +527,50 @@ export default function Agenda() {
 
   const currentFormattedDate = formatDate(currentDate);
   const isToday = currentFormattedDate === strToday;
-  
+
+  // Convierte una hora timetz UTC ("HH:MM:SS+00") a minutos locales del navegador
+  const parseTimetzToLocalMins = (t) => {
+    if (!t) return null;
+    const [h, m] = t.substring(0, 5).split(':').map(Number);
+    return (h * 60 + m) - new Date().getTimezoneOffset();
+  };
+
+  const horarioInfo = useMemo(() => {
+    if (!horarioData) return null;
+    const aperMañ   = parseTimetzToLocalMins(horarioData.horaAperturaMañana);
+    const cierreMañ = parseTimetzToLocalMins(horarioData.horaCierreMañana);
+    const aperTarde  = parseTimetzToLocalMins(horarioData.horaAperturaTarde);
+    const cierreTarde = parseTimetzToLocalMins(horarioData.horaCierreTarde);
+    return {
+      abierto: horarioData.abierto,
+      aperMañ,
+      cierreMañ,
+      aperTarde,
+      cierreTarde,
+      isContinuo: !horarioData.horaCierreMañana && !horarioData.horaAperturaTarde,
+      hasTarde: !!horarioData.horaAperturaTarde && !!horarioData.horaCierreTarde,
+    };
+  }, [horarioData]);
+
   const timeSlots = useMemo(() => {
-    const day = currentDate.getDay(); 
-    const morningSlots = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30'];
-    const afternoonSlots = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
-    if (day >= 1 && day <= 5) return [...morningSlots, ...afternoonSlots];
-    if (day === 6) return morningSlots;
-    return []; 
-  }, [currentDate]);
+    if (!horarioInfo || !horarioInfo.abierto) return [];
+    const { aperMañ, cierreMañ, aperTarde, cierreTarde, isContinuo, hasTarde } = horarioInfo;
+    if (aperMañ === null) return [];
+
+    const genSlots = (start, end) => {
+      const slots = [];
+      for (let m = start; m < end; m += 30) slots.push(minsToTime(m));
+      return slots;
+    };
+
+    if (isContinuo) {
+      return cierreTarde !== null ? genSlots(aperMañ, cierreTarde) : [];
+    }
+    if (!hasTarde) {
+      return cierreMañ !== null ? genSlots(aperMañ, cierreMañ) : [];
+    }
+    return [...genSlots(aperMañ, cierreMañ), ...genSlots(aperTarde, cierreTarde)];
+  }, [horarioInfo]);
 
   const handlePrevDay = () => {
     const prev = new Date(currentDate);
@@ -952,27 +1004,25 @@ export default function Agenda() {
                       })}
                     </div>
 
-                    {/* Siesta / Mid-day Extra Section (Only Weekdays after 13:30) */}
-                    {time === '13:30' && currentDate.getDay() >= 1 && currentDate.getDay() <= 5 && (
+                    {/* Siesta / Mid-day Extra Section */}
+                    {horarioInfo?.hasTarde && time === minsToTime((horarioInfo.cierreMañ ?? 0) - 30) && (
                       <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b-2 border-gray-100 bg-amber-50/10 min-h-[5rem] group/siesta">
                         <div className="bg-amber-50/50 border-r border-amber-100 flex flex-col items-center justify-center text-[8px] font-black uppercase text-amber-500 text-center leading-tight">
                           <span className="text-lg font-light">+</span>Extra<br/>Siesta
                         </div>
                         {hairdressers.map(hd => {
                           const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
-                          const isMidPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && new Date().getHours() >= 17);
-                          
+                          const siestaStartMins = horarioInfo?.cierreMañ ?? (14 * 60);
+                          const siestaEndLimit   = horarioInfo?.aperTarde  ?? (17 * 60);
+                          const isMidPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && new Date().getHours() * 60 + new Date().getMinutes() >= siestaEndLimit);
+
                           const midApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra_mid' && a.hairdresser === hd);
                           const regularOverflowApts = appointments.filter(a => {
                              if (a.date !== currentFormattedDate || a.hairdresser !== hd || a.time === 'extra_mid' || a.time === 'extra') return false;
                              const startMins = timeToMins(a.time);
                              const endMins = startMins + (a.durationMins || 30);
-                             // Solo nos importan las que empezaron ANTES de las 14 y terminan DESPUÉS de las 14
-                             return startMins < 14 * 60 && endMins > 14 * 60;
+                             return startMins < siestaStartMins && endMins > siestaStartMins;
                           });
-
-                          const siestaStartMins = 14 * 60; 
-                          const siestaEndLimit = 17 * 60;
                           
                           // 1. Calculamos SOLO el hueco del overflow real de la mañana
                           let overflowEndMins = siestaStartMins;
@@ -1091,16 +1141,16 @@ export default function Agenda() {
                       const isExtraPast = currentFormattedDate < strToday;
                       
                       const extraApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra' && a.hairdresser === hd);
+                      const extraStartMins = horarioInfo?.hasTarde
+                        ? (horarioInfo.cierreTarde ?? (21 * 60))
+                        : (horarioInfo?.cierreMañ ?? (21 * 60));
+
                       const regularExtraOverflowApts = appointments.filter(a => {
                          if (a.date !== currentFormattedDate || a.hairdresser !== hd || a.time === 'extra') return false;
                          const startMins = timeToMins(a.time, a.rawDate);
                          const endMins = startMins + (a.durationMins || 30);
-                         // Solo nos importan las que empezaron ANTES de las 21 y terminan DESPUÉS de las 21
-                         return startMins < 21 * 60 && endMins > 21 * 60;
+                         return startMins < extraStartMins && endMins > extraStartMins;
                       });
-
-                      const isSaturday = currentDate.getDay() === 6;
-                      const extraStartMins = isSaturday ? 14 * 60 : 21 * 60;
                       
                       // 1. Calculamos SOLO el hueco del overflow real de la tarde/mañana (según el día)
                       let extraOverflowEndMins = extraStartMins;
