@@ -828,8 +828,12 @@ export default function Agenda() {
 
                 {(() => {
                   const THREE_H = 3 * 60 * 60 * 1000;
+                  const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
                   const waitlistCount = waitlistEntries.filter(w => {
                     if (w.date !== currentFormattedDate || w.denegado || w.notificado) return false;
+                    // Ignorar entradas cuyo slot ya pasó
+                    const slotEnd = Math.floor(w.startMins / 30) * 30 + 30;
+                    if (currentFormattedDate < strToday || (currentFormattedDate === strToday && slotEnd < nowMins)) return false;
                     // Only count if visible (slot free) AND no pending blocking notification in the same group
                     return hairdressers.some(hd => {
                       const hdId = Object.entries(hairdresserMap).find(([k, v]) => v === hd)?.[0];
