@@ -3,6 +3,9 @@ import { supabase } from '../lib/supabaseClient';
 import { Lock, Mail, Eye, EyeOff, LogIn, Clock, ShieldCheck } from 'lucide-react';
 import logoUrl from '../assets/logo.png';
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 60_000; // 60 segundos
+
 const Login = ({ session, isRecoveryMode }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,6 +17,26 @@ const Login = ({ session, isRecoveryMode }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [lastVisit, setLastVisit] = useState('');
   const [vvHeight, setVvHeight] = useState('100dvh');
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockUntil, setLockUntil] = useState(null);
+  const [lockCountdown, setLockCountdown] = useState(0);
+
+  // Countdown ticker mientras dure el bloqueo
+  useEffect(() => {
+    if (!lockUntil) return;
+    const interval = setInterval(() => {
+      const remaining = Math.ceil((lockUntil - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setLockUntil(null);
+        setLoginAttempts(0);
+        setLockCountdown(0);
+        clearInterval(interval);
+      } else {
+        setLockCountdown(remaining);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lockUntil]);
 
   // Ultimate fix for tablet keyboard viewport and scroll issues
   useEffect(() => {
@@ -51,6 +74,12 @@ const Login = ({ session, isRecoveryMode }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (lockUntil && Date.now() < lockUntil) {
+      setError(`Demasiados intentos. Espera ${lockCountdown}s antes de intentarlo de nuevo.`);
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -61,7 +90,16 @@ const Login = ({ session, isRecoveryMode }) => {
       });
 
       if (authError) {
-        setError('Acceso denegado. Verifica tu email y contraseña.');
+        const newAttempts = loginAttempts + 1;
+        setLoginAttempts(newAttempts);
+        if (newAttempts >= MAX_ATTEMPTS) {
+          const until = Date.now() + LOCKOUT_MS;
+          setLockUntil(until);
+          setLockCountdown(Math.ceil(LOCKOUT_MS / 1000));
+          setError(`Demasiados intentos fallidos. Espera 60s.`);
+        } else {
+          setError(`Acceso denegado. Verifica tu email y contraseña. (${newAttempts}/${MAX_ATTEMPTS})`);
+        }
       }
     } catch (err) {
       setError('Error de conexión con el servidor de seguridad.');
@@ -249,14 +287,16 @@ const Login = ({ session, isRecoveryMode }) => {
               </div>
             )}
 
-            <button 
-              type="submit" 
-              disabled={loading}
+            <button
+              type="submit"
+              disabled={loading || !!lockUntil}
               className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-[0.2em] py-5 rounded-2xl shadow-xl shadow-blue-600/20 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed group/btn overflow-hidden relative"
             >
               <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000 skew-x-[-20deg]" />
               {loading ? (
                 <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : lockUntil ? (
+                <span>Bloqueado {lockCountdown}s</span>
               ) : (
                 <>
                   <LogIn className="w-5 h-5" />

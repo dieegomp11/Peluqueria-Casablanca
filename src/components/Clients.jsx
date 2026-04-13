@@ -126,21 +126,23 @@ export default function Clients() {
           <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-end gap-4 lg:pb-1 lg:ml-8">
             <div className="flex-1 flex items-center gap-3 bg-white border-2 border-gray-100 focus-within:border-black rounded-xl shadow-sm transition-colors px-4">
               <User className="w-4 h-4 text-gray-400 shrink-0" />
-              <input 
+              <input
                 type="text"
                 placeholder="Buscar nombre..."
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
+                maxLength={100}
                 className="w-full py-2.5 outline-none font-medium placeholder:text-gray-400 text-sm bg-transparent"
               />
             </div>
             <div className="flex-1 flex items-center gap-3 bg-white border-2 border-gray-100 focus-within:border-black rounded-xl shadow-sm transition-colors px-4">
               <Phone className="w-4 h-4 text-gray-400 shrink-0" />
-              <input 
+              <input
                 type="text"
                 placeholder="Buscar teléfono..."
                 value={searchPhone}
                 onChange={(e) => setSearchPhone(e.target.value)}
+                maxLength={20}
                 className="w-full py-2.5 outline-none font-medium placeholder:text-gray-400 text-sm bg-transparent"
               />
             </div>

@@ -273,6 +273,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   onChange={e => setNewClientName(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
+                  maxLength={100}
                   className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
                 />
                 <input
@@ -282,6 +283,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   onChange={e => setNewClientPhone(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
+                  maxLength={20}
                   className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
                 />
                 <div className="flex gap-2">
@@ -300,6 +302,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                     onChange={e => setSearchQuery(e.target.value)}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
+                    maxLength={100}
                     className="bg-transparent outline-none text-sm font-bold text-black w-full"
                   />
                 </div>

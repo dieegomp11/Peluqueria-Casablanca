@@ -42,7 +42,7 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       
-      console.log('Auth Event:', event, !!newSession);
+      if (import.meta.env.DEV) console.log('Auth Event:', event, !!newSession);
 
       if (event === 'PASSWORD_RECOVERY') {
         setIsRecovering(true);

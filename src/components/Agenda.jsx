@@ -105,7 +105,7 @@ const CustomDatePicker = ({ currentDate, onSelectDate, onClose }) => {
   )
 };
 
-const WEBHOOK_URL = 'https://tula-nonexceptional-overabstemiously.ngrok-free.dev/webhook-test/bb961fbc-51d4-455e-b413-4cf1f0965a06';
+const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
 
 const formatPhoneDisplay = (phone) => {
   if (!phone) return '';
@@ -132,8 +132,7 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
     return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
   };
 
-  // fechaEnvio se guarda en Supabase como UTC (GMT+0), comparamos con Date.now() que también es UTC
-  const getUtcNowIso = () => new Date().toISOString();
+  const getSpainNowIso = () => new Date().toISOString();
 
   const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
 
@@ -152,20 +151,29 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
   const handleNotify = async (w) => {
     if (notifyingId || isNotified(w) || hasPendingNotification) return;
     setNotifyingId(w.id);
-    const fechaEnvio = getSpainNowIso();
     try {
+      const fechaEnvio = getSpainNowIso();
       await supabase.from('Lista Espera').update({ notificado: true, fechaEnvio }).eq('idEspera', w.id);
       setLocalNotified(prev => new Set([...prev, w.id]));
       setLocalNotifiedAt(prev => new Map([...prev, [w.id, fechaEnvio]]));
-      await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: String(w.id)
-      });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      try {
+        await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: String(w.id),
+          signal: controller.signal,
+        });
+      } catch (fetchErr) {
+        console.warn('Webhook no respondió:', fetchErr?.message);
+      } finally {
+        clearTimeout(timeout);
+      }
       onRefresh();
     } catch (err) {
-      console.error('Error calling webhook:', err);
+      console.error('Error al notificar:', err);
     } finally {
       setNotifyingId(null);
     }
@@ -271,17 +279,30 @@ for (let h = 7; h <= 23; h++) {
   if (h < 23) TIME_OPTIONS.push(`${h.toString().padStart(2,'0')}:30`);
 }
 
-// timetz "HH:MM:SS+00" → "HH:MM"
-const timetzToHHMM = (t) => t ? t.substring(0, 5) : '';
+// timetz "HH:MM:SS+00" (UTC) → "HH:MM" en hora local de Madrid
+const timetzToLocal = (t) => {
+  if (!t) return '';
+  const [h, m] = t.substring(0, 5).split(':').map(Number);
+  const localMins = h * 60 + m - new Date().getTimezoneOffset();
+  return minsToTime(localMins);
+};
+
+// "HH:MM" hora local de Madrid → "HH:MM" UTC para guardar en DB
+const localToUTC = (hhmm) => {
+  if (!hhmm) return null;
+  const [h, m] = hhmm.split(':').map(Number);
+  const utcMins = h * 60 + m + new Date().getTimezoneOffset();
+  return minsToTime(utcMins);
+};
 
 function HorarioModal({ isOpen, onClose, onSave, horarioData, currentDate }) {
   const existing = horarioData;
   const [abierto, setAbierto] = useState(existing?.abierto ?? false);
-  const [aperMañ, setAperMañ]   = useState(timetzToHHMM(existing?.horaAperturaMañana) || '09:00');
-  const [cierreMañ, setCierreMañ] = useState(timetzToHHMM(existing?.horaCierreMañana) || '14:00');
+  const [aperMañ, setAperMañ]   = useState(timetzToLocal(existing?.horaAperturaMañana) || '09:00');
+  const [cierreMañ, setCierreMañ] = useState(timetzToLocal(existing?.horaCierreMañana) || '14:00');
   const [hasTarde, setHasTarde] = useState(!!(existing?.horaAperturaTarde));
-  const [aperTarde, setAperTarde]   = useState(timetzToHHMM(existing?.horaAperturaTarde) || '17:00');
-  const [cierreTarde, setCierreTarde] = useState(timetzToHHMM(existing?.horaCierreTarde) || '21:00');
+  const [aperTarde, setAperTarde]   = useState(timetzToLocal(existing?.horaAperturaTarde) || '17:00');
+  const [cierreTarde, setCierreTarde] = useState(timetzToLocal(existing?.horaCierreTarde) || '21:00');
   const [isContinuo, setIsContinuo] = useState(!existing?.horaCierreMañana && !existing?.horaAperturaTarde && existing?.abierto);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -295,15 +316,15 @@ function HorarioModal({ isOpen, onClose, onSave, horarioData, currentDate }) {
     try {
       const payload = {
         abierto,
-        horaAperturaMañana: abierto ? aperMañ : null,
-        horaCierreMañana:   abierto && !isContinuo ? cierreMañ : null,
-        horaAperturaTarde:  abierto && !isContinuo && hasTarde ? aperTarde : null,
-        horaCierreTarde:    abierto ? (isContinuo ? cierreMañ : (hasTarde ? cierreTarde : null)) : null,
+        horaAperturaMañana: abierto ? localToUTC(aperMañ) : null,
+        horaCierreMañana:   abierto && !isContinuo ? localToUTC(cierreMañ) : null,
+        horaAperturaTarde:  abierto && !isContinuo && hasTarde ? localToUTC(aperTarde) : null,
+        horaCierreTarde:    abierto ? (isContinuo ? localToUTC(cierreMañ) : (hasTarde ? localToUTC(cierreTarde) : null)) : null,
       };
       // En horario continuo usamos cierreMañ como cierre único y los campos de tarde quedan null
       if (abierto && isContinuo) {
-        payload.horaCierreTarde = cierreMañ;
-        payload.horaAperturaMañana = aperMañ;
+        payload.horaCierreTarde = localToUTC(cierreMañ);
+        payload.horaAperturaMañana = localToUTC(aperMañ);
         payload.horaCierreMañana = null;
         payload.horaAperturaTarde = null;
       }
@@ -1301,11 +1322,11 @@ export default function Agenda() {
                                 })}
                               {!isMidPast && (
                                 <button 
-                                  onClick={() => setNewAptModal({ open: true, time: minsToTime(lastEndMins), hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
+                                  onClick={() => setNewAptModal({ open: true, time: minsToTime(siestaStartMins), hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
                                   className="w-full py-2 rounded-xl border-2 border-dashed border-amber-200 text-amber-400 hover:border-amber-400 hover:bg-amber-50 transition-all flex flex-col items-center justify-center opacity-0 group-hover/siesta:opacity-100"
                                 >
                                   <span className="text-lg font-light leading-none">+</span>
-                                  <span className="text-[8px] font-bold uppercase tracking-tighter">Cita Siesta ({minsToTime(lastEndMins)})</span>
+                                  <span className="text-[8px] font-bold uppercase tracking-tighter">Cita Siesta ({minsToTime(siestaStartMins)})</span>
                                 </button>
                               )}
                             </div>
@@ -1326,9 +1347,8 @@ export default function Agenda() {
                       const isExtraPast = currentFormattedDate < strToday;
                       
                       const extraApts = appointments.filter(a => a.date === currentFormattedDate && a.time === 'extra' && a.hairdresser === hd);
-                      const extraStartMins = horarioInfo?.hasTarde
-                        ? (horarioInfo.cierreTarde ?? (21 * 60))
-                        : (horarioInfo?.cierreMañ ?? (21 * 60));
+                      // Continuo: cierreTarde tiene el cierre real aunque hasTarde=false
+                      const extraStartMins = horarioInfo?.cierreTarde ?? horarioInfo?.cierreMañ ?? (21 * 60);
 
                       const regularExtraOverflowApts = appointments.filter(a => {
                          if (a.date !== currentFormattedDate || a.hairdresser !== hd || a.time === 'extra') return false;
@@ -1431,11 +1451,11 @@ export default function Agenda() {
 
                           {!isExtraPast && (
                             <button 
-                              onClick={() => setNewAptModal({ open: true, time: minsToTime(lastExtraEndMins), hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
+                              onClick={() => setNewAptModal({ open: true, time: minsToTime(extraStartMins), hairdresser: hd, hairdresserId: hdId ? Number(hdId) : null })}
                               className="w-full py-3 rounded-xl border-2 border-dashed border-amber-200 text-amber-400 hover:border-amber-400 hover:bg-amber-50 transition-all flex flex-col items-center justify-center gap-1 group"
                             >
                               <span className="text-xl font-light leading-none">+</span>
-                              <span className="text-[9px] font-bold uppercase tracking-tighter">Cita Especial ({minsToTime(lastExtraEndMins)})</span>
+                              <span className="text-[9px] font-bold uppercase tracking-tighter">Cita Especial ({minsToTime(extraStartMins)})</span>
                             </button>
                           )}
                         </div>
