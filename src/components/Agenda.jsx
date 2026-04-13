@@ -1034,7 +1034,8 @@ export default function Agenda() {
                           const overflowGapHeight = ((overflowEndMins - siestaStartMins) / 30) * SLOT_HEIGHT;
 
                           // 2. Calculamos el total de ocupación (incluyendo extras) para el botón de "Nueva Cita"
-                          let lastEndMins = overflowEndMins;
+                          // Partimos siempre desde el cierre de mañana (siestaStartMins), no del overflow
+                          let lastEndMins = siestaStartMins;
                           midApts.forEach(a => {
                              const end = timeToMins(a.time, a.rawDate) + (a.durationMins || 30);
                              if (end > lastEndMins) lastEndMins = end;
@@ -1161,7 +1162,8 @@ export default function Agenda() {
                       const extraOverflowGapHeight = ((extraOverflowEndMins - extraStartMins) / 30) * SLOT_HEIGHT;
 
                       // 2. Calculamos el total de ocupación (incluyendo extras) para el botón de "Nueva Cita"
-                      let lastExtraEndMins = extraOverflowEndMins;
+                      // Partimos siempre desde el cierre de tarde (o mañana si no hay tarde)
+                      let lastExtraEndMins = extraStartMins;
                       extraApts.forEach(a => {
                          const end = timeToMins(a.time, a.rawDate) + (a.durationMins || 30);
                          if (end > lastExtraEndMins) lastExtraEndMins = end;
