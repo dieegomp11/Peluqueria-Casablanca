@@ -85,6 +85,12 @@ export default function Clients() {
     });
   }, [searchName, searchPhone, clientsData]);
 
+  const formatPhoneDisplay = (phone) => {
+    if (!phone) return '';
+    const digits = phone.replace(/[\s\-().+]/g, '');
+    return digits.length > 9 ? digits.slice(-9) : phone.trim();
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Nunca';
     const [yyyy, mm, dd] = dateString.split('T')[0].split('-');
@@ -167,7 +173,7 @@ export default function Clients() {
                         title="Llamar al cliente"
                       >
                         <Phone className="w-4 h-4 shrink-0 -mt-[1px]" />
-                        <span className="text-[14px] font-bold tracking-widest leading-none pt-[1px] whitespace-nowrap">{client.phone}</span>
+                        <span className="text-[14px] font-bold tracking-widest leading-none pt-[1px] whitespace-nowrap">{formatPhoneDisplay(client.phone)}</span>
                       </a>
                     </div>
                   </div>
@@ -249,7 +255,7 @@ export default function Clients() {
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Teléfono</label>
                 <div className="w-full border-2 border-gray-100 rounded-xl p-3 flex justify-between items-center bg-white transition-colors">
-                  <span className="font-medium text-black">{selectedClient.phone}</span>
+                  <span className="font-medium text-black">{formatPhoneDisplay(selectedClient.phone)}</span>
                   <a 
                     href={`tel:${selectedClient.phone.replace(/\\s+/g, '')}`}
                     className="p-2 bg-black text-white rounded-lg hover:bg-slate-900 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"

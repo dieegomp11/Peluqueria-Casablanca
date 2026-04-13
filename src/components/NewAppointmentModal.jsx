@@ -90,6 +90,24 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     }
   }, [selectedCut, startTime]);
 
+  // Auto-adjust start time when service changes: always end right at next appointment's start
+  useEffect(() => {
+    if (!selectedCut || !isOpen) return;
+    const duration = selectedCut.duracionCorteMins || 30;
+    const slotMins = timeToMins(slotTime || '10:00');
+    const relevant = (appointments || []).filter(a => a.date === slotDate && a.hairdresser === hairdresser);
+    const next = relevant
+      .filter(a => timeToMins(a.time) > slotMins)
+      .sort((a, b) => timeToMins(a.time) - timeToMins(b.time))[0];
+    const nextMins = next ? timeToMins(next.time) : null;
+    if (nextMins !== null) {
+      // Place appointment as late as possible so it ends exactly at next appointment's start.
+      // If duration is too long for the gap, start at slotMins (conflict warning will show).
+      const ideal = Math.floor((nextMins - duration) / 5) * 5;
+      setStartTime(minsToTimeStr(Math.max(slotMins, ideal)));
+    }
+  }, [selectedCut]);
+
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (searchQuery.length >= 2 && !isAddingNewClient) {
@@ -123,6 +141,17 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     const nh = Math.floor(total / 60);
     const nm = total % 60;
     return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+  }
+
+  function timeToMins(t) {
+    if (!t || !t.includes(':')) return 0;
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function minsToTimeStr(mins) {
+    const safe = Math.max(0, Math.min(1435, mins));
+    return `${String(Math.floor(safe / 60)).padStart(2, '0')}:${String(safe % 60).padStart(2, '0')}`;
   }
 
   async function handleCreateClient() {
@@ -167,6 +196,15 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     setSaving(false);
     if (!insertError) { onCreated(); onClose(); }
   }
+
+  const relevantApts = (appointments || []).filter(a => a.date === slotDate && a.hairdresser === hairdresser);
+  const startMinsNum = timeToMins(startTime);
+  const endMinsNum = timeToMins(endTime);
+  const conflictApt = endTime ? relevantApts.find(a => {
+    const aptS = timeToMins(a.time);
+    const aptE = aptS + (a.durationMins || 30);
+    return startMinsNum < aptE && endMinsNum > aptS;
+  }) : null;
 
   if (!isOpen) return null;
 
@@ -214,6 +252,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
         {/* Inputs Section */}
         <div className="p-6 flex flex-col gap-5 border-b border-gray-100 bg-white shrink-0">
           {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest leading-none">⚠ {error}</div>}
+          {conflictApt && <div className="p-4 bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl text-[10px] font-black uppercase tracking-widest leading-none">⚠ Conflicto con {conflictApt.client} a las {conflictApt.time}</div>}
           
           <div>
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2.5 block ml-1">Cliente</label>
@@ -337,7 +376,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
         <div className="px-6 py-6 border-t border-gray-100 bg-gray-50 shrink-0">
           <button
             onClick={handleSubmit}
-            disabled={!selectedClient || !selectedCut || saving}
+            disabled={!selectedClient || !selectedCut || saving || !!conflictApt}
             className="w-full py-5 bg-black text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-[1.5rem] transition-all hover:bg-zinc-800 disabled:bg-gray-200 disabled:text-gray-400 shadow-2xl active:scale-95"
           >
             {saving ? 'Guardando...' : 'Reservar Cita'}

@@ -33,7 +33,7 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedHairdresser || !startDate || !endDate) {
       setError('Por favor, selecciona un peluquero y las fechas de la ausencia.');
@@ -41,7 +41,7 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
     }
 
     // Validar si ya hay una ausencia
-    const hasAbsence = absences.some(abs => 
+    const hasAbsence = absences.some(abs =>
       abs.hairdresser === selectedHairdresser &&
       !abs.cancelada &&
       abs.startDate <= endDate &&
@@ -53,30 +53,33 @@ export default function AbsenceModal({ isOpen, onClose, onAddAbsence, hairdresse
       return;
     }
 
-    // Validar si hay citas
-    const hasAppointment = appointments.some(apt => 
-      apt.hairdresser === selectedHairdresser &&
-      !apt.cancelada &&
-      apt.date >= startDate &&
-      apt.date <= endDate
-    );
+    // Validar si hay citas en el tramo de la ausencia
+    const hasAppointment = appointments.some(apt => {
+      if (apt.hairdresser !== selectedHairdresser || apt.cancelada) return false;
+      if (apt.date < startDate || apt.date > endDate) return false;
+      if (isAllDay) return true;
+      return apt.time >= startTime && apt.time < endTime;
+    });
 
     if (hasAppointment) {
-      setError(`${selectedHairdresser} tiene citas programadas en esas fechas. Cancela o reubica sus citas primero.`);
+      setError(`${selectedHairdresser} tiene citas programadas en esas fechas y horario. Cancela o reubica sus citas primero.`);
       return;
     }
-    
+
     setError('');
 
-    onAddAbsence({
-      id: Date.now(),
-      hairdresser: selectedHairdresser,
-      startDate,
-      endDate,
-      isAllDay,
-      startTime: isAllDay ? null : startTime,
-      endTime: isAllDay ? null : endTime
-    });
+    try {
+      await onAddAbsence({
+        hairdresser: selectedHairdresser,
+        startDate,
+        endDate,
+        isAllDay,
+        startTime: isAllDay ? null : startTime,
+        endTime: isAllDay ? null : endTime
+      });
+    } catch (err) {
+      setError(`Error al guardar: ${err?.message || err?.code || 'Error desconocido'}`);
+    }
   };
 
   return (
