@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Clock, Phone, User, Scissors, ChevronLeft, ChevronRight, Calendar as CalendarIcon, UserX, X, Check, Trash2, Users, Hourglass } from 'lucide-react';
+import { Clock, Phone, User, Scissors, ChevronLeft, ChevronRight, Calendar as CalendarIcon, UserX, X, Check, Trash2, Users, Hourglass, AlertCircle } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import AbsenceModal from './AbsenceModal';
 import NewAppointmentModal from './NewAppointmentModal';
@@ -943,7 +943,13 @@ export default function Agenda() {
             className={`overflow-y-auto overflow-x-auto flex-1 pb-10 relative bg-white touch-auto overscroll-contain ${timeSlots.length > 0 ? 'agenda-scroll-container' : ''}`}
           >
             <div className="block min-w-[500px] lg:min-w-0">
-              {timeSlots.length > 0 ? (
+              {loadError ? (
+                <div className="flex flex-col items-center justify-center gap-4 py-20 px-8 text-center">
+                  <AlertCircle className="w-12 h-12 text-red-400 opacity-60" />
+                  <p className="text-sm font-bold uppercase tracking-widest text-red-500">{loadError}</p>
+                  <button onClick={loadAgenda} className="mt-2 px-5 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-colors">Reintentar</button>
+                </div>
+              ) : timeSlots.length > 0 ? (
                 <>
                   {timeSlots.map((time, slotIndex) => {
                     return (

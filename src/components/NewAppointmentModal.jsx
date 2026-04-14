@@ -60,7 +60,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   // Load cut types on mount
   useEffect(() => {
     async function fetchCutTypes() {
-      const { data } = await supabase.from('Tipo Corte').select('*');
+      const { data, error } = await supabase.from('Tipo Corte').select('*');
+      if (error) { setError('No se pudieron cargar los servicios. Cierra y vuelve a intentarlo.'); return; }
       if (data) {
         setCutTypes(data);
         if (data.length > 0) {
@@ -159,8 +160,9 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     if (!newClientName) { setError('El nombre es obligatorio.'); return; }
     if (!newClientPhone) { setError('El teléfono es obligatorio.'); return; }
     setCreatingClient(true);
-    const { data } = await supabase.from('Cliente').insert({ nombreCliente: newClientName, telefono: newClientPhone }).select().single();
+    const { data, error: createError } = await supabase.from('Cliente').insert({ nombreCliente: newClientName, telefono: newClientPhone }).select().single();
     setCreatingClient(false);
+    if (createError) { setError('No se pudo registrar el cliente. Inténtalo de nuevo.'); return; }
     if (data) { setSelectedClient(data); setIsAddingNewClient(false); }
   }
 
@@ -262,7 +264,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               {hairdresser} · {slotDate ? new Date(slotDate + 'T12:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : ''} · {slotTime}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={handleBackdropClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
@@ -350,8 +352,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               <div className="flex items-center bg-gray-50 rounded-[1.5rem] px-4 py-3">
                 <span className="font-black text-sm text-black flex-1 text-center">{startTime}</span>
                 <div className="flex flex-col">
-                  <button onClick={() => setStartTime(adjustTime(startTime, 5))} className="p-2"><ChevronUp className="w-4 h-4 text-gray-300" /></button>
-                  <button onClick={() => setStartTime(adjustTime(startTime, -5))} className="p-2"><ChevronDown className="w-4 h-4 text-gray-300" /></button>
+                  <button onClick={() => setStartTime(adjustTime(startTime, 5))} className="p-2 hover:text-black transition-colors"><ChevronUp className="w-4 h-4 text-gray-500" /></button>
+                  <button onClick={() => setStartTime(adjustTime(startTime, -5))} className="p-2 hover:text-black transition-colors"><ChevronDown className="w-4 h-4 text-gray-500" /></button>
                 </div>
               </div>
             </div>
@@ -360,8 +362,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               <div className="flex items-center bg-gray-50 rounded-[1.5rem] px-4 py-3">
                 <span className="font-black text-sm text-black flex-1 text-center">{endTime}</span>
                 <div className="flex flex-col">
-                  <button onClick={() => setEndTime(adjustTime(endTime, 5))} className="p-2"><ChevronUp className="w-4 h-4 text-gray-300" /></button>
-                  <button onClick={() => setEndTime(adjustTime(endTime, -5))} className="p-2"><ChevronDown className="w-4 h-4 text-gray-300" /></button>
+                  <button onClick={() => setEndTime(adjustTime(endTime, 5))} className="p-2 hover:text-black transition-colors"><ChevronUp className="w-4 h-4 text-gray-500" /></button>
+                  <button onClick={() => setEndTime(adjustTime(endTime, -5))} className="p-2 hover:text-black transition-colors"><ChevronDown className="w-4 h-4 text-gray-500" /></button>
                 </div>
               </div>
             </div>

@@ -12,6 +12,7 @@ export default function Services() {
   const [deletingService, setDeletingService] = useState(null);
   const inputRef = useRef(null);
 
+  const [loadError, setLoadError] = useState(null);
   const [saveError, setSaveError] = useState('');
 
   const [formData, setFormData] = useState({
@@ -30,12 +31,19 @@ export default function Services() {
 
   async function fetchServices() {
     setLoading(true);
-    const { data } = await supabase
-      .from('Tipo Corte')
-      .select('*')
-      .order('nombreCorte', { ascending: true });
-    if (data) setServices(data);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const { data, error } = await supabase
+        .from('Tipo Corte')
+        .select('*')
+        .order('nombreCorte', { ascending: true });
+      if (error) throw error;
+      if (data) setServices(data);
+    } catch {
+      setLoadError('No se pudieron cargar los servicios.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleOpenAddModal = () => {
@@ -125,7 +133,15 @@ export default function Services() {
         </header>
 
         <section className="flex-1 overflow-y-auto custom-scrollbar relative pr-2">
-          {loading ? (
+          {loadError ? (
+            <div className="w-full h-96 flex flex-col items-center justify-center text-gray-400 gap-4">
+              <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-2">
+                <Scissors className="w-10 h-10 text-red-300" />
+              </div>
+              <p className="text-sm font-black uppercase tracking-[0.3em] text-red-400">{loadError}</p>
+              <button onClick={fetchServices} className="mt-2 px-5 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-colors">Reintentar</button>
+            </div>
+          ) : loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
               {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                 <div key={i} className="h-48 bg-gray-100 rounded-3xl" />

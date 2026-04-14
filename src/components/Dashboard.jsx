@@ -263,6 +263,18 @@ export default function Dashboard() {
     setReferenceDate(next);
   };
 
+  const isCurrentPeriod = (() => {
+    const now = new Date();
+    if (filterType === 'day') return formatDate(referenceDate) === formatDate(now);
+    if (filterType === 'week') {
+      const weekStart = (d) => { const day = d.getDay(); return new Date(d.getFullYear(), d.getMonth(), d.getDate() - (day === 0 ? 6 : day - 1)); };
+      return weekStart(referenceDate).toDateString() === weekStart(now).toDateString();
+    }
+    if (filterType === 'month') return referenceDate.getMonth() === now.getMonth() && referenceDate.getFullYear() === now.getFullYear();
+    if (filterType === 'year') return referenceDate.getFullYear() === now.getFullYear();
+    return true;
+  })();
+
   const getLabel = () => {
     if (filterType === 'day') return referenceDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
     if (filterType === 'week') {
@@ -448,6 +460,14 @@ export default function Dashboard() {
               ))}
             </div>
             
+            {!isCurrentPeriod && (
+              <button
+                onClick={() => setReferenceDate(new Date())}
+                className="px-2 py-1 text-xs font-black uppercase tracking-widest text-[#38bdf8] bg-[#38bdf8]/10 border border-[#38bdf8]/30 rounded-lg hover:bg-[#38bdf8]/20 transition-colors whitespace-nowrap"
+              >
+                Ahora
+              </button>
+            )}
             <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-1.5 shadow-sm w-full sm:w-auto justify-between sm:justify-start relative" ref={menuRef}>
               <button onClick={prevPeriod} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-gray-400 hover:text-white"/></button>
               
@@ -516,8 +536,8 @@ export default function Dashboard() {
                 <div className="absolute right-[-10px] top-[-10px] sm:right-0 sm:top-0 opacity-10">
                   <AlertCircle className="w-16 h-16 sm:w-24 sm:h-24" />
                 </div>
-                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-400 mb-1 sm:mb-2">
-                  No Shows {noShows.length > 0 && <span className="lowercase font-normal ml-1">(ver)</span>}
+                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-400 mb-1 sm:mb-2 flex items-center gap-1">
+                  No Shows {noShows.length > 0 && <span className="lowercase font-normal underline decoration-dotted">ver lista →</span>}
                 </p>
                 <div className="text-3xl sm:text-5xl font-black text-red-500">{noShows.length}</div>
               </div>
