@@ -122,9 +122,34 @@ const CustomDatePicker = ({ currentDate, onSelectDate, onClose, filterType }) =>
   )
 };
 
+// timetz "HH:MM:SS+00" (UTC) → minutos desde medianoche
+const timetzToMins = (t) => {
+  if (!t) return null;
+  const [h, m] = t.substring(0, 5).split(':').map(Number);
+  return h * 60 + m;
+};
+
+// Minutos abiertos en un día según la fila de Horario
+const calcDayOpenMins = (row) => {
+  if (!row || !row.abierto) return 0;
+  const aperMañ   = timetzToMins(row.horaAperturaMañana);
+  const cierreMañ = timetzToMins(row.horaCierreMañana);
+  const aperTarde  = timetzToMins(row.horaAperturaTarde);
+  const cierreTarde = timetzToMins(row.horaCierreTarde);
+  if (aperMañ === null) return 0;
+  // Continuo (sin cierre mañana ni apertura tarde)
+  if (!cierreMañ && !aperTarde) return cierreTarde !== null ? cierreTarde - aperMañ : 0;
+  // Con siesta (dos bloques)
+  if (aperTarde !== null && cierreTarde !== null && cierreMañ !== null)
+    return (cierreMañ - aperMañ) + (cierreTarde - aperTarde);
+  // Solo mañana
+  if (cierreMañ !== null) return cierreMañ - aperMañ;
+  return 0;
+};
+
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({ citas: [], peluqueros: {}, cortes: {} });
+  const [data, setData] = useState({ citas: [], peluqueros: {}, cortes: {}, horarioRows: [] });
   
   // Filters
   const [filterType, setFilterType] = useState('month'); // day, week, month, year
@@ -177,10 +202,11 @@ export default function Dashboard() {
     setLoading(true);
     try {
       // Citas dentro del rango. Aseguramos que la fechaInicio contenga fechas hasta fin de dia.
-      const [{ data: citasData }, { data: peluquerosData }, { data: cortesData }] = await Promise.all([
+      const [{ data: citasData }, { data: peluquerosData }, { data: cortesData }, { data: horarioData }] = await Promise.all([
         supabase.from('Citas').select('*, Cliente(*)').gte('fechaInicio', `${periodBounds.start} 00:00:00`).lte('fechaInicio', `${periodBounds.end} 23:59:59`),
         supabase.from('Peluqueros').select('*'),
-        supabase.from('Tipo Corte').select('*')
+        supabase.from('Tipo Corte').select('*'),
+        supabase.from('Horario').select('*').gte('dia', periodBounds.start).lte('dia', periodBounds.end)
       ]);
 
       const pMap = {};
@@ -192,7 +218,8 @@ export default function Dashboard() {
       setData({
         citas: citasData || [],
         peluqueros: pMap,
-        cortes: cMap
+        cortes: cMap,
+        horarioRows: horarioData || []
       });
     } catch (err) {
       console.error(err);
@@ -297,11 +324,12 @@ export default function Dashboard() {
   const bestHourCount = hourCounts[popularHour] || 0;
 
   // --- Advanced Metrics ---
-  const numDays = Math.max(1, Math.round((new Date(periodBounds.end).getTime() - new Date(periodBounds.start).getTime()) / (1000 * 60 * 60 * 24)) + 1);
   const numHairdressers = Object.keys(data.peluqueros).length || 1;
   const totalOccupiedMins = attendedCitas.reduce((acc, c) => acc + (c.durationMins || 30), 0);
-  const totalAvailableMins = numHairdressers * numDays * 480; // 8h shift standard
-  const capacityPer = Math.min(100, Math.round((totalOccupiedMins / totalAvailableMins) * 100));
+  const totalAvailableMins = data.horarioRows.reduce((acc, row) => acc + calcDayOpenMins(row) * numHairdressers, 0);
+  const capacityPer = totalAvailableMins > 0 ? Math.min(100, Math.round((totalOccupiedMins / totalAvailableMins) * 100)) : 0;
+  const availableHours = totalAvailableMins > 0 ? (totalAvailableMins / 60).toFixed(1).replace(/\.0$/, '') : null;
+  const occupiedHours = (totalOccupiedMins / 60).toFixed(1).replace(/\.0$/, '');
 
   const avgTicket = attendedCitas.length > 0 ? (totalRevenue / attendedCitas.length).toFixed(2) : 0;
   const totalCitasCount = data.citas.length || 0;
@@ -581,14 +609,19 @@ export default function Dashboard() {
                     )}
 
                     <div className="grid grid-cols-2 gap-3 shrink-0">
-                      <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between">
-                        <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider mb-1">Capacidad</p>
+                      <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between gap-1">
+                        <p className="text-[8px] font-bold uppercase text-gray-500 tracking-wider">Capacidad</p>
                         <div className="flex items-end justify-between">
-                          <span className="text-lg font-black text-white">{capacityPer}%</span>
+                          <span className="text-lg font-black text-white">{availableHours !== null ? `${capacityPer}%` : '—'}</span>
                           <div className="w-12 bg-white/10 h-1.5 rounded-full overflow-hidden mb-1">
                             <div className="bg-[#38bdf8] h-full" style={{ width: `${capacityPer}%` }}></div>
                           </div>
                         </div>
+                        <p className="text-[8px] text-gray-500 font-medium leading-tight">
+                          {availableHours !== null
+                            ? <><span className="text-[#38bdf8] font-black">{occupiedHours}h</span> de {availableHours}h</>
+                            : <span className="italic">Sin horario configurado</span>}
+                        </p>
                       </div>
 
                       <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex flex-col justify-between">
