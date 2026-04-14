@@ -462,6 +462,7 @@ export default function Agenda() {
   const [isHorarioModalOpen, setIsHorarioModalOpen] = useState(false);
   const [waitlistEntries, setWaitlistEntries] = useState([]);
   const [waitlistPopup, setWaitlistPopup] = useState({ open: false, entries: [], time: '', hairdresser: '' });
+  const [loadError, setLoadError] = useState(null);
 
   const handleAttendance = async (aptId, attended) => {
     // 1. Marcar asistencia en la cita
@@ -554,6 +555,7 @@ export default function Agenda() {
 
   async function loadAgenda() {
     setLoading(true);
+    setLoadError(null);
     try {
       const dateStr = formatDate(currentDate);
       const [{ data: citasData }, { data: absencesData }, { data: peluquerosData }, { data: cortesData }, { data: horarioRow }] = await Promise.all([
@@ -697,6 +699,7 @@ export default function Agenda() {
       }
     } catch (err) {
       console.error('Error loading agenda:', err);
+      setLoadError('No se pudieron cargar las citas.');
     } finally {
       setLoading(false);
     }
@@ -978,29 +981,33 @@ export default function Agenda() {
                         return (
                           <div key={`${time}-${hd}`} className="p-1 md:p-2 border-r border-gray-100 last:border-r-0 relative group cursor-pointer min-w-0" style={{ height: `${SLOT_HEIGHT}rem`, overflow: (isMultiSlot || hasMultiSlotWaitlist) ? 'visible' : undefined }}>
                             {absenceRecord ? (
-                              <div 
+                              <div
                                 className="w-full h-full rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center opacity-80 relative group/absence transition-colors"
                               >
                                 {confirmDeleteAbsenceId !== absenceRecord.id ? (
-                                  <div 
-                                    onClick={(e) => { e.stopPropagation(); setConfirmDeleteAbsenceId(absenceRecord.id); }}
-                                    className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-red-50 hover:border-red-200 transition-colors rounded-xl absolute inset-0"
-                                  >
-                                    <span className="text-[10px] sm:text-xs font-bold text-gray-400 group-hover/absence:text-red-500 uppercase tracking-widest">Ausente</span>
+                                  <div className="w-full h-full flex items-center justify-center relative">
+                                    <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest">Ausente</span>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setConfirmDeleteAbsenceId(absenceRecord.id); }}
+                                      className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-500 opacity-0 group-hover/absence:opacity-100 transition-opacity hover:bg-red-200"
+                                      title="Eliminar ausencia"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
                                   </div>
                                 ) : (
                                   <div className="absolute inset-0 bg-red-600/95 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center p-2 z-[70] animate-in fade-in duration-200">
                                     <p className="text-white text-[10px] font-black uppercase tracking-tighter mb-2 text-center">¿Eliminar<br/>Ausencia?</p>
                                     <div className="flex gap-2 w-full">
-                                      <button 
+                                      <button
                                         onClick={(e) => { e.stopPropagation(); handleDeleteAbsence(absenceRecord.id); }}
-                                        className="flex-1 bg-white text-red-600 text-[10px] font-bold py-1 rounded-lg shadow-sm hover:bg-gray-100 transition-colors"
+                                        className="flex-1 bg-white text-red-600 text-[10px] font-bold py-2 rounded-lg shadow-sm hover:bg-gray-100 transition-colors"
                                       >
                                         Sí
                                       </button>
-                                      <button 
+                                      <button
                                         onClick={(e) => { e.stopPropagation(); setConfirmDeleteAbsenceId(null); }}
-                                        className="flex-1 bg-black/20 text-white text-[10px] font-bold py-1 rounded-lg hover:bg-black/40 transition-colors"
+                                        className="flex-1 bg-black/20 text-white text-[10px] font-bold py-2 rounded-lg hover:bg-black/40 transition-colors"
                                       >
                                         No
                                       </button>
@@ -1468,9 +1475,37 @@ export default function Agenda() {
                   </div>
                 </>
               ) : (
-                <div className="flex-1 min-h-[400px] flex flex-col items-center justify-center text-gray-400 gap-4 bg-gray-50/50">
-                  <CalendarIcon className="w-16 h-16 opacity-20" />
-                  <p className="text-xl font-bold uppercase tracking-widest text-gray-500">Peluquería Cerrada</p>
+                <div className="flex-1 min-h-[400px] flex flex-col items-center justify-center gap-4 bg-gray-50/50">
+                  {loadError ? (
+                    <>
+                      <CalendarIcon className="w-16 h-16 text-red-300 opacity-60" />
+                      <p className="text-sm font-bold uppercase tracking-widest text-red-500">{loadError}</p>
+                      <button
+                        onClick={loadAgenda}
+                        className="mt-1 px-5 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-colors"
+                      >
+                        Reintentar
+                      </button>
+                    </>
+                  ) : loading ? (
+                    <p className="text-sm font-bold uppercase tracking-widest text-gray-400 animate-pulse">Cargando…</p>
+                  ) : horarioData === null ? (
+                    <>
+                      <CalendarIcon className="w-16 h-16 opacity-20" />
+                      <p className="text-sm font-bold uppercase tracking-widest text-gray-500">Sin horario configurado</p>
+                      <button
+                        onClick={() => setIsHorarioModalOpen(true)}
+                        className="mt-1 px-5 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-colors"
+                      >
+                        Configurar horario
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <CalendarIcon className="w-16 h-16 opacity-20" />
+                      <p className="text-xl font-bold uppercase tracking-widest text-gray-500">Peluquería Cerrada</p>
+                    </>
+                  )}
                 </div>
               )}
             </div>

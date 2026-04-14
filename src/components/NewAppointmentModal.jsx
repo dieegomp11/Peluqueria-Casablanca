@@ -155,7 +155,9 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   }
 
   async function handleCreateClient() {
-    if (!newClientName || !newClientPhone) return;
+    if (!newClientName && !newClientPhone) { setError('Nombre y teléfono son obligatorios.'); return; }
+    if (!newClientName) { setError('El nombre es obligatorio.'); return; }
+    if (!newClientPhone) { setError('El teléfono es obligatorio.'); return; }
     setCreatingClient(true);
     const { data } = await supabase.from('Cliente').insert({ nombreCliente: newClientName, telefono: newClientPhone }).select().single();
     setCreatingClient(false);
@@ -329,8 +331,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               <div className="flex items-center bg-gray-50 rounded-[1.5rem] px-4 py-3">
                 <span className="font-black text-sm text-black flex-1 text-center">{startTime}</span>
                 <div className="flex flex-col">
-                  <button onClick={() => setStartTime(adjustTime(startTime, 5))}><ChevronUp className="w-4 h-4 text-gray-300" /></button>
-                  <button onClick={() => setStartTime(adjustTime(startTime, -5))}><ChevronDown className="w-4 h-4 text-gray-300" /></button>
+                  <button onClick={() => setStartTime(adjustTime(startTime, 5))} className="p-2"><ChevronUp className="w-4 h-4 text-gray-300" /></button>
+                  <button onClick={() => setStartTime(adjustTime(startTime, -5))} className="p-2"><ChevronDown className="w-4 h-4 text-gray-300" /></button>
                 </div>
               </div>
             </div>
@@ -339,8 +341,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
               <div className="flex items-center bg-gray-50 rounded-[1.5rem] px-4 py-3">
                 <span className="font-black text-sm text-black flex-1 text-center">{endTime}</span>
                 <div className="flex flex-col">
-                  <button onClick={() => setEndTime(adjustTime(endTime, 5))}><ChevronUp className="w-4 h-4 text-gray-300" /></button>
-                  <button onClick={() => setEndTime(adjustTime(endTime, -5))}><ChevronDown className="w-4 h-4 text-gray-300" /></button>
+                  <button onClick={() => setEndTime(adjustTime(endTime, 5))} className="p-2"><ChevronUp className="w-4 h-4 text-gray-300" /></button>
+                  <button onClick={() => setEndTime(adjustTime(endTime, -5))} className="p-2"><ChevronDown className="w-4 h-4 text-gray-300" /></button>
                 </div>
               </div>
             </div>
