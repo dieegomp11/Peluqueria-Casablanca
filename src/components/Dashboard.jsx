@@ -557,7 +557,8 @@ export default function Dashboard() {
                        <div 
                          key={hd.id} 
                          onClick={() => hd.count > 0 && setSelectedHairdresser(hd.id)}
-                         className={`flex flex-col justify-between p-3 rounded-2xl border transition-all ${hd.count > 0 ? 'bg-black border-white/20 hover:border-[#38bdf8] cursor-pointer' : 'bg-white/5 border-white/5 opacity-50'}`}
+                         className={`flex flex-col justify-between p-3 rounded-2xl border transition-all ${hd.count > 0 ? 'bg-black border-white/20 hover:border-[#38bdf8] cursor-pointer' : 'bg-white/5 border-white/5 opacity-50 cursor-not-allowed'}`}
+                         title={hd.count === 0 ? 'Sin servicios en este periodo' : undefined}
                        >
                          <h3 className="font-black text-xs uppercase truncate mb-2">{hd.name}</h3>
                          <div className="flex justify-between items-baseline">
@@ -654,7 +655,7 @@ export default function Dashboard() {
                         <p className="text-[8px] text-gray-500 font-medium leading-tight">
                           {availableHours !== null
                             ? <><span className="text-[#38bdf8] font-black">{occupiedHours}h</span> de {availableHours}h</>
-                            : <span className="italic">Sin horario configurado</span>}
+                            : <span className="italic">Configúralo en Agenda</span>}
                         </p>
                       </div>
 

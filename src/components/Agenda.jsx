@@ -119,6 +119,7 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
   const [notifyingId, setNotifyingId] = useState(null);
   const [localNotified, setLocalNotified] = useState(new Set());
   const [localNotifiedAt, setLocalNotifiedAt] = useState(new Map());
+  const [notifyError, setNotifyError] = useState('');
 
   const formatTime = (iso) => {
     if (!iso) return '--:--';
@@ -173,7 +174,7 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
       }
       onRefresh();
     } catch (err) {
-      console.error('Error al notificar:', err);
+      setNotifyError('No se pudo enviar la notificación. Inténtalo de nuevo.');
     } finally {
       setNotifyingId(null);
     }
@@ -263,7 +264,10 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
           ))}
         </div>
 
-        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
+        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex flex-col gap-2">
+          {notifyError && (
+            <p className="text-[10px] font-black uppercase tracking-widest text-red-500 text-center">⚠ {notifyError}</p>
+          )}
           <p className="text-[10px] text-gray-400 text-center font-semibold uppercase tracking-wider">
             {entries.length} cliente{entries.length !== 1 ? 's' : ''} en espera para este tramo
           </p>
@@ -473,6 +477,7 @@ export default function Agenda() {
   const [waitlistEntries, setWaitlistEntries] = useState([]);
   const [waitlistPopup, setWaitlistPopup] = useState({ open: false, entries: [], time: '', hairdresser: '' });
   const [loadError, setLoadError] = useState(null);
+  const [actionError, setActionError] = useState('');
 
   const handleAttendance = async (aptId, attended) => {
     // 1. Marcar asistencia en la cita
@@ -480,7 +485,12 @@ export default function Agenda() {
       .from('Citas')
       .update({ asistencia: attended })
       .eq('idCita', aptId);
-    
+
+    if (error) {
+      setActionError('No se pudo registrar la asistencia. Inténtalo de nuevo.');
+      return;
+    }
+
     if (!error) {
       setAppointments(prev => prev.map(a => 
         a.id === aptId ? { ...a, status: attended ? 'completed' : 'no-show' } : a
@@ -507,10 +517,13 @@ export default function Agenda() {
       .from('Citas')
       .update({ cancelada: true })
       .eq('idCita', aptId);
-    
-    if (!error) {
-      setAppointments(prev => prev.filter(a => a.id !== aptId));
+
+    if (error) {
+      setActionError('No se pudo cancelar la cita. Inténtalo de nuevo.');
+      setConfirmCancelId(null);
+      return;
     }
+    setAppointments(prev => prev.filter(a => a.id !== aptId));
     setConfirmCancelId(null);
   };
 
@@ -526,7 +539,7 @@ export default function Agenda() {
     }]);
 
     if (error) {
-      console.error('Error adding absence:', error);
+      setActionError('No se pudo registrar la ausencia. Inténtalo de nuevo.');
       throw error;
     }
     loadAgenda();
@@ -924,6 +937,15 @@ export default function Agenda() {
             </div>
           </div>
         </header>
+
+        {actionError && (
+          <div className="mb-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between gap-4 shrink-0">
+            <p className="text-[11px] font-black uppercase tracking-widest text-red-600">⚠ {actionError}</p>
+            <button onClick={() => setActionError('')} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <section className="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
           <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-200 bg-gray-50 shrink-0">

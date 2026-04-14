@@ -46,6 +46,15 @@ export default function Services() {
     }
   }
 
+  const isDirtyModal = isModalOpen && (editingService
+    ? parseFloat(formData.precioCorte) !== editingService.precioCorte || parseInt(formData.duracionCorteMins) !== editingService.duracionCorteMins
+    : formData.nombreCorte !== '' || formData.precioCorte !== 10 || formData.duracionCorteMins !== 30);
+
+  const handleModalClose = () => {
+    if (isDirtyModal && !window.confirm('Tienes datos sin guardar. ¿Cerrar sin guardar?')) return;
+    setIsModalOpen(false);
+  };
+
   const handleOpenAddModal = () => {
     setEditingService(null);
     setFormData({ nombreCorte: '', precioCorte: 10, duracionCorteMins: 30 });
@@ -220,9 +229,9 @@ export default function Services() {
       {/* Add/Edit Modal */}
       {isModalOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-500" onClick={() => setIsModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-500" onClick={handleModalClose} />
           <div className="relative w-full max-w-md bg-white rounded-[3rem] p-10 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 overflow-hidden">
-            <button onClick={() => setIsModalOpen(false)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition-colors">
+            <button onClick={handleModalClose} className="absolute right-8 top-8 text-gray-400 hover:text-black transition-colors">
               <X className="w-6 h-6" />
             </button>
 

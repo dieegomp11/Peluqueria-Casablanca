@@ -52,10 +52,11 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     }
   }, [isOpen]);
 
-  // Clean errors
+  // Clean validation errors when user corrects the relevant fields.
+  // Intentionally excludes startTime/endTime so save errors persist while the user adjusts time to retry.
   useEffect(() => {
     if (error) setError('');
-  }, [startTime, endTime, selectedClient, selectedCut]);
+  }, [selectedClient, selectedCut]);
 
   // Load cut types on mount
   useEffect(() => {
