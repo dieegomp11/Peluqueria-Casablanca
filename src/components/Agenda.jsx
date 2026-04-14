@@ -882,6 +882,14 @@ export default function Agenda() {
                   ) : null;
                 })()}
 
+                {!isToday && (
+                  <button
+                    onClick={() => setCurrentDate(today)}
+                    className="px-2 py-1 text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    Hoy
+                  </button>
+                )}
                 <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
                   <button onClick={handlePrevDay} className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="Día anterior">
                     <ChevronLeft className="w-5 h-5"/>

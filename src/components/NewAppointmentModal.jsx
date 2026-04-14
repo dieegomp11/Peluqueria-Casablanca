@@ -196,7 +196,12 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     });
 
     setSaving(false);
-    if (!insertError) { onCreated(); onClose(); }
+    if (!insertError) {
+      onCreated();
+      onClose();
+    } else {
+      setError('No se pudo guardar la cita. Inténtalo de nuevo.');
+    }
   }
 
   const relevantApts = (appointments || []).filter(a => a.date === slotDate && a.hairdresser === hairdresser);
@@ -207,6 +212,17 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     const aptE = aptS + (a.durationMins || 30);
     return startMinsNum < aptE && endMinsNum > aptS;
   }) : null;
+
+  const isDirtyForm = !!selectedClient || (isAddingNewClient && (newClientName || newClientPhone));
+  const handleBackdropClose = () => {
+    if (isDirtyForm && !window.confirm('Tienes datos sin guardar. ¿Cerrar sin guardar?')) return;
+    onClose();
+  };
+
+  const submitDisabledReason = !selectedClient ? 'Selecciona un cliente' :
+    !selectedCut ? 'Selecciona un servicio' :
+    !!conflictApt ? `Conflicto con ${conflictApt.client} a las ${conflictApt.time}` :
+    undefined;
 
   if (!isOpen) return null;
 
@@ -230,7 +246,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       {/* Backdrop */}
       <div 
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', transition: 'opacity 300ms' }}
-        onClick={onClose} 
+        onClick={handleBackdropClose}
       />
       
       {/* Modal Card */}
@@ -243,7 +259,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
           <div>
             <h2 className="text-base font-black uppercase tracking-tight text-black leading-none">Nueva Cita</h2>
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-              {hairdresser} · {slotDate} · {slotTime}
+              {hairdresser} · {slotDate ? new Date(slotDate + 'T12:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : ''} · {slotTime}
             </p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -289,7 +305,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
                 />
                 <div className="flex gap-2">
-                   <button onClick={handleCreateClient} className="flex-1 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Crear</button>
+                   <button onClick={handleCreateClient} disabled={creatingClient} className="flex-1 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl disabled:opacity-60">{creatingClient ? 'Creando...' : 'Crear'}</button>
                    <button onClick={() => setIsAddingNewClient(false)} className="px-4 py-4 bg-gray-200 text-gray-600 rounded-xl hover:bg-gray-300 transition-colors flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
               </div>
@@ -317,6 +333,9 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                       </button>
                     ))}
                   </div>
+                )}
+                {searchQuery.length === 1 && (
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 ml-2">Escribe al menos 2 letras</p>
                 )}
                 {searchQuery.length >= 2 && searchResults.length === 0 && (
                   <button onClick={() => { setIsAddingNewClient(true); setNewClientName(searchQuery); }} className="mt-3 w-full p-4 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest">+ Registrar "{searchQuery}"</button>
@@ -382,6 +401,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
           <button
             onClick={handleSubmit}
             disabled={!selectedClient || !selectedCut || saving || !!conflictApt}
+            title={submitDisabledReason}
             className="w-full py-5 bg-black text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-[1.5rem] transition-all hover:bg-zinc-800 disabled:bg-gray-200 disabled:text-gray-400 shadow-2xl active:scale-95"
           >
             {saving ? 'Guardando...' : 'Reservar Cita'}

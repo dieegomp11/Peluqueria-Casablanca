@@ -12,6 +12,8 @@ export default function Services() {
   const [deletingService, setDeletingService] = useState(null);
   const inputRef = useRef(null);
 
+  const [saveError, setSaveError] = useState('');
+
   const [formData, setFormData] = useState({
     nombreCorte: '',
     precioCorte: 10,
@@ -39,6 +41,7 @@ export default function Services() {
   const handleOpenAddModal = () => {
     setEditingService(null);
     setFormData({ nombreCorte: '', precioCorte: 10, duracionCorteMins: 30 });
+    setSaveError('');
     setIsModalOpen(true);
   };
 
@@ -49,26 +52,29 @@ export default function Services() {
       precioCorte: service.precioCorte,
       duracionCorteMins: service.duracionCorteMins
     });
+    setSaveError('');
     setIsModalOpen(true);
   };
 
   const handleOpenDeleteConfirm = (service) => {
     setDeletingService(service);
+    setSaveError('');
     setIsDeleteConfirmOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaveError('');
     const payload = editingService
       ? { precioCorte: parseFloat(formData.precioCorte), duracionCorteMins: parseInt(formData.duracionCorteMins) }
       : { nombreCorte: formData.nombreCorte, precioCorte: parseFloat(formData.precioCorte), duracionCorteMins: parseInt(formData.duracionCorteMins) };
 
     if (editingService) {
       const { error } = await supabase.from('Tipo Corte').update(payload).eq('idCorte', editingService.idCorte);
-      if (error) console.error(error);
+      if (error) { setSaveError('No se pudo guardar el servicio. Inténtalo de nuevo.'); return; }
     } else {
       const { error } = await supabase.from('Tipo Corte').insert([payload]);
-      if (error) console.error(error);
+      if (error) { setSaveError('No se pudo crear el servicio. Inténtalo de nuevo.'); return; }
     }
     setIsModalOpen(false);
     fetchServices();
@@ -76,8 +82,9 @@ export default function Services() {
 
   const handleDelete = async () => {
     if (!deletingService) return;
+    setSaveError('');
     const { error } = await supabase.from('Tipo Corte').delete().eq('idCorte', deletingService.idCorte);
-    if (error) console.error(error);
+    if (error) { setSaveError('No se pudo eliminar el servicio. Inténtalo de nuevo.'); return; }
     setIsDeleteConfirmOpen(false);
     setDeletingService(null);
     fetchServices();
@@ -282,6 +289,7 @@ export default function Services() {
                 </div>
               </div>
 
+              {saveError && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest leading-snug">⚠ {saveError}</div>}
               <button
                 type="submit"
                 className="w-full bg-black text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all shadow-2xl shadow-black/20 mt-2 active:scale-[0.98]"
@@ -311,6 +319,7 @@ export default function Services() {
               <p className="text-gray-400 text-sm font-bold uppercase tracking-widest opacity-80 mb-10 leading-relaxed">
                 Estás a punto de borrar <span className="text-white">"{deletingService?.nombreCorte}"</span>. Esta acción no se puede deshacer.
               </p>
+              {saveError && <div className="mb-4 p-4 bg-red-500/10 text-red-400 rounded-2xl text-[10px] font-black uppercase tracking-widest leading-snug">⚠ {saveError}</div>}
               <div className="grid grid-cols-2 gap-4 w-full">
                 <button
                   onClick={() => setIsDeleteConfirmOpen(false)}

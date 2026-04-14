@@ -497,7 +497,7 @@ export default function Dashboard() {
                 <div className="absolute right-[-10px] top-[-10px] sm:right-0 sm:top-0 opacity-10">
                   <Scissors className="w-16 h-16 sm:w-24 sm:h-24" />
                 </div>
-                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#38bdf8] mb-1 sm:mb-2">Total Cortes</p>
+                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#38bdf8] mb-1 sm:mb-2">Cortes Atendidos</p>
                 <div className="text-3xl sm:text-5xl font-black text-white">{attendedCitas.length}</div>
               </div>
 
