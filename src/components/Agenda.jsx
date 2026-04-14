@@ -235,6 +235,7 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
                 <button
                   onClick={() => handleNotify(w)}
                   disabled={!!notifyingId || isNotified(w) || w.denegado || (!isNotified(w) && !w.denegado && hasPendingNotification)}
+                  title={hasPendingNotification && !isNotified(w) && !w.denegado ? 'Hay una notificación pendiente de respuesta. Espera 3 h antes de notificar a otro cliente.' : undefined}
                   className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
                     w.denegado
                       ? 'bg-red-100 text-red-600 border border-red-200 cursor-default'
@@ -307,6 +308,15 @@ function HorarioModal({ isOpen, onClose, onSave, horarioData, currentDate }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const initialRef = useRef({ abierto: existing?.abierto ?? false, aperMañ: timetzToLocal(existing?.horaAperturaMañana) || '09:00', cierreMañ: timetzToLocal(existing?.horaCierreMañana) || '14:00', hasTarde: !!(existing?.horaAperturaTarde), aperTarde: timetzToLocal(existing?.horaAperturaTarde) || '17:00', cierreTarde: timetzToLocal(existing?.horaCierreTarde) || '21:00', isContinuo: !existing?.horaCierreMañana && !existing?.horaAperturaTarde && existing?.abierto });
+  const iv = initialRef.current;
+  const isDirty = abierto !== iv.abierto || aperMañ !== iv.aperMañ || cierreMañ !== iv.cierreMañ || hasTarde !== iv.hasTarde || aperTarde !== iv.aperTarde || cierreTarde !== iv.cierreTarde || isContinuo !== iv.isContinuo;
+
+  const handleClose = () => {
+    if (isDirty && !window.confirm('Tienes cambios sin guardar. ¿Cerrar sin guardar?')) return;
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -343,7 +353,7 @@ function HorarioModal({ isOpen, onClose, onSave, horarioData, currentDate }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-sm font-black uppercase tracking-tight text-gray-900">Horario · <span className="capitalize font-semibold text-gray-500">{dayLabel}</span></h2>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
+          <button onClick={handleClose} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-200 rounded-full transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -430,7 +440,7 @@ function HorarioModal({ isOpen, onClose, onSave, horarioData, currentDate }) {
           )}
 
           <div className="pt-1 flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 px-4 font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Cancelar</button>
+            <button type="button" onClick={handleClose} className="flex-1 py-2.5 px-4 font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Cancelar</button>
             <button type="submit" disabled={saving} className="flex-1 py-2.5 px-4 font-bold text-white bg-black hover:bg-slate-900 rounded-xl transition-all shadow-md disabled:opacity-50">
               {saving ? 'Guardando…' : 'Guardar'}
             </button>

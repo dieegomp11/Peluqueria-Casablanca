@@ -149,6 +149,7 @@ const calcDayOpenMins = (row) => {
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [data, setData] = useState({ citas: [], peluqueros: {}, cortes: {}, horarioRows: [] });
   
   // Filters
@@ -200,6 +201,7 @@ export default function Dashboard() {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       // Citas dentro del rango. Aseguramos que la fechaInicio contenga fechas hasta fin de dia.
       const [{ data: citasData }, { data: peluquerosData }, { data: cortesData }, { data: horarioData }] = await Promise.all([
@@ -223,6 +225,7 @@ export default function Dashboard() {
       });
     } catch (err) {
       console.error(err);
+      setLoadError('No se pudieron cargar los datos.');
     } finally {
       setLoading(false);
     }
@@ -262,7 +265,10 @@ export default function Dashboard() {
 
   const getLabel = () => {
     if (filterType === 'day') return referenceDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-    if (filterType === 'week') return `Semana ${periodBounds.start} a ${periodBounds.end.slice(-2)}`;
+    if (filterType === 'week') {
+      const fmt = (s) => new Date(s + 'T12:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      return `${fmt(periodBounds.start)} – ${fmt(periodBounds.end)}`;
+    }
     if (filterType === 'month') return referenceDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     if (filterType === 'year') return referenceDate.getFullYear().toString();
     return '';
@@ -470,7 +476,15 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {loading ? (
+        {loadError ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-4">
+            <AlertCircle className="w-12 h-12 text-red-400 opacity-60" />
+            <p className="text-sm font-bold uppercase tracking-widest text-red-400">{loadError}</p>
+            <button onClick={loadData} className="px-5 py-2.5 bg-white text-black text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-100 transition-colors">
+              Reintentar
+            </button>
+          </div>
+        ) : loading ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-[#38bdf8] border-t-transparent flex items-center justify-center rounded-full animate-spin"></div>
           </div>

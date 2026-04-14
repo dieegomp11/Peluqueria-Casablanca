@@ -10,17 +10,22 @@ export default function Clients() {
   const [currentPage, setCurrentPage] = useState(1);
   const [clientsData, setClientsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [fetchKey, setFetchKey] = useState(0);
 
   const ITEMS_PER_PAGE = 16;
 
   useEffect(() => {
     async function fetchClients() {
+      try {
       const [{ data: clients, error }, { data: citas }, { data: cortes }] = await Promise.all([
         supabase.from('Cliente').select('*').order('nombreCliente', { ascending: true }),
         supabase.from('Citas').select('cliente, fechaInicio, corte, asistencia, cancelada').eq('cancelada', false),
         supabase.from('Tipo Corte').select('idCorte, nombreCorte')
       ]);
-        
+
+      if (error) throw error;
+
       if (clients) {
         const now = new Date();
         const currMonth = now.getMonth();
@@ -66,10 +71,15 @@ export default function Clients() {
         });
         setClientsData(mapped);
       }
-      setLoading(false);
+      } catch (err) {
+        console.error('Error loading clients:', err);
+        setLoadError('No se pudieron cargar los clientes.');
+      } finally {
+        setLoading(false);
+      }
     }
     fetchClients();
-  }, []);
+  }, [fetchKey]);
 
   // Reset pagination when searching
   useEffect(() => {
@@ -217,10 +227,33 @@ export default function Clients() {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="w-full h-64 flex flex-col items-center justify-center text-gray-400 gap-3">
+          ) : loading ? (
+            <div className="w-full h-64 flex flex-col items-center justify-center gap-3">
+              <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+              <p className="text-sm font-bold uppercase tracking-widest text-gray-400 animate-pulse">Cargando…</p>
+            </div>
+          ) : loadError ? (
+            <div className="w-full h-64 flex flex-col items-center justify-center gap-3">
+              <Search className="w-12 h-12 text-red-300 opacity-60" />
+              <p className="text-sm font-bold uppercase tracking-widest text-red-500">{loadError}</p>
+              <button
+                onClick={() => { setLoadError(null); setLoading(true); setFetchKey(k => k + 1); }}
+                className="px-5 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-colors"
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : clientsData.length === 0 ? (
+            <div className="w-full h-64 flex flex-col items-center justify-center gap-3">
               <Search className="w-12 h-12 opacity-20" />
-              <p className="text-sm font-bold uppercase tracking-widest text-gray-500">No se encontraron clientes</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-gray-500">Sin clientes registrados</p>
+              <p className="text-xs text-gray-400 font-medium">Los clientes se crean al agendar una cita</p>
+            </div>
+          ) : (
+            <div className="w-full h-64 flex flex-col items-center justify-center gap-3">
+              <Search className="w-12 h-12 opacity-20" />
+              <p className="text-sm font-bold uppercase tracking-widest text-gray-500">Sin resultados</p>
+              <p className="text-xs text-gray-400 font-medium">Prueba con otro nombre o teléfono</p>
             </div>
           )}
         </section>

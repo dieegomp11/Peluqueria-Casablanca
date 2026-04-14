@@ -153,7 +153,7 @@ function App() {
 
           <button 
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-[#38bdf8] text-black shadow-[0_0_20px_rgba(56,189,248,0.5)] scale-105' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+            className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-white text-black shadow-lg scale-105' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
           >
             <BarChart3 className="w-6 h-6" />
             <span className="text-[10px] font-bold uppercase tracking-wider">KPIs</span>
@@ -163,7 +163,7 @@ function App() {
         <div className="mt-auto w-full px-4 pt-10">
           <button 
             onClick={handleLogout}
-            className="w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 text-red-500/50 hover:text-red-500 hover:bg-red-500/10"
+            className="w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 text-gray-400 hover:text-red-500 hover:bg-red-500/10"
           >
             <LogOut className="w-6 h-6" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Salir</span>

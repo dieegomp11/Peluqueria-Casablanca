@@ -290,7 +290,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                 />
                 <div className="flex gap-2">
                    <button onClick={handleCreateClient} className="flex-1 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Crear</button>
-                   <button onClick={() => setIsAddingNewClient(false)} className="px-4 py-4 bg-gray-200 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-xl">X</button>
+                   <button onClick={() => setIsAddingNewClient(false)} className="px-4 py-4 bg-gray-200 text-gray-600 rounded-xl hover:bg-gray-300 transition-colors flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
               </div>
             ) : (
