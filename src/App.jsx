@@ -6,7 +6,7 @@ import Clients from './components/Clients';
 import Services from './components/Services';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
-import logoUrl from './assets/logo.png';
+import logoUrl from './assets/logo.jpeg';
 import { BarChart3 } from 'lucide-react';
 
 function App() {

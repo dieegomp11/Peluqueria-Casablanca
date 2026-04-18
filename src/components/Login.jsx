@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Lock, Mail, Eye, EyeOff, LogIn, Clock, ShieldCheck } from 'lucide-react';
-import logoUrl from '../assets/logo.png';
+import logoUrl from '../assets/logo.jpeg';
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 60_000; // 60 segundos
