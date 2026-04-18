@@ -1248,7 +1248,7 @@ export default function Agenda() {
                                               <span className={`truncate text-[7px] md:text-[8px] font-bold uppercase px-1 py-[1px] rounded border w-fit shrink-0 ${getServiceBadge(apt.service)}`}>{apt.service}</span>
                                               <div className="flex items-center gap-1 shrink-0">
                                                 {editingPriceId === apt.id ? (
-                                                  <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                  <div className="flex items-center gap-0.5 shrink-0">
                                                     <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-[10px] flex items-center justify-center select-none transition-colors">−</button>
                                                     <span className="text-[7px] md:text-[8px] font-bold text-emerald-600 min-w-[18px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
                                                     <button onClick={(e) => { e.stopPropagation(); const v = (parseFloat(editingPriceValue) || 0) + 1; handlePriceArrowChange(apt.id, v); }} className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-[10px] flex items-center justify-center select-none transition-colors">+</button>
@@ -1277,7 +1277,7 @@ export default function Agenda() {
                                               </span>
                                               <h2 className="text-sm font-bold leading-none truncate uppercase">{apt.client}</h2>
                                             </div>
-                                            <div className="shrink-0 mt-1" onClick={(e) => e.stopPropagation()}>
+                                            <div className="shrink-0 mt-1">
                                               {editingPriceId === apt.id ? (
                                                 <div className="flex items-center gap-1.5">
                                                   <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-base flex items-center justify-center select-none transition-colors">−</button>
@@ -1430,7 +1430,7 @@ export default function Agenda() {
                                           <div className={`${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} font-bold text-amber-600 bg-amber-50 px-1 rounded shrink-0 leading-tight`}>{startTimeStr}-{endTimeStr}</div>
                                         </div>
                                         {apt.durationMins > 15 && (
-                                          <div className="shrink-0 mt-0.5" onClick={(e) => e.stopPropagation()}>
+                                          <div className="shrink-0 mt-0.5">
                                             {editingPriceId === apt.id ? (
                                               <div className="flex items-center gap-1">
                                                 <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-sm flex items-center justify-center select-none transition-colors">−</button>
@@ -1452,7 +1452,7 @@ export default function Agenda() {
                                           <span className={`${apt.durationMins <= 15 ? 'text-[6px]' : 'text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1`} title={apt.service}>{apt.service}</span>
                                           <div className="flex items-center gap-1 shrink-0">
                                             {apt.durationMins <= 15 && (editingPriceId === apt.id ? (
-                                              <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                              <div className="flex items-center gap-0.5 shrink-0">
                                                 <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">−</button>
                                                 <span className="text-[6px] font-bold text-emerald-600 min-w-[16px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
                                                 <button onClick={(e) => { e.stopPropagation(); const v = (parseFloat(editingPriceValue) || 0) + 1; handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">+</button>
@@ -1591,7 +1591,7 @@ export default function Agenda() {
                                          <div className={`${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} font-bold text-amber-600 bg-amber-50 px-1 rounded shrink-0 leading-tight`}>{startTimeStr}-{endTimeStr}</div>
                                        </div>
                                        {apt.durationMins > 15 && (
-                                         <div className="shrink-0 mt-0.5" onClick={(e) => e.stopPropagation()}>
+                                         <div className="shrink-0 mt-0.5">
                                            {editingPriceId === apt.id ? (
                                              <div className="flex items-center gap-1">
                                                <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-sm flex items-center justify-center select-none transition-colors">−</button>
@@ -1613,7 +1613,7 @@ export default function Agenda() {
                                          <span className={`${apt.durationMins <= 15 ? 'text-[6px]' : 'text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1`} title={apt.service}>{apt.service}</span>
                                          <div className="flex items-center gap-1 shrink-0">
                                            {apt.durationMins <= 15 && (editingPriceId === apt.id ? (
-                                             <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                             <div className="flex items-center gap-0.5 shrink-0">
                                                <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">−</button>
                                                <span className="text-[6px] font-bold text-emerald-600 min-w-[16px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
                                                <button onClick={(e) => { e.stopPropagation(); const v = (parseFloat(editingPriceValue) || 0) + 1; handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">+</button>
