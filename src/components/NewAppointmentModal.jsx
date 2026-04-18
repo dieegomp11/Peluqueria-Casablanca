@@ -283,7 +283,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   <p className="font-black text-sm text-black truncate uppercase tracking-tight">{selectedClient.nombreCliente}</p>
                   <p className="text-xs font-bold text-gray-400">{selectedClient.telefono}</p>
                 </div>
-                <button onClick={() => setSelectedClient(null)} className="text-[10px] font-black text-red-500 uppercase tracking-widest underline ml-4">Cambiar</button>
+                <button onClick={() => { setSelectedClient(null); setSearchQuery(''); setSearchResults([]); }} className="text-[10px] font-black text-red-500 uppercase tracking-widest underline ml-4">Cambiar</button>
               </div>
             ) : isAddingNewClient ? (
               <div className="bg-gray-50 rounded-[1.5rem] p-5 flex flex-col gap-4">

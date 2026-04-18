@@ -266,7 +266,12 @@ function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
 
         <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex flex-col gap-2">
           {notifyError && (
-            <p className="text-[10px] font-black uppercase tracking-widest text-red-500 text-center">⚠ {notifyError}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-red-500">⚠ {notifyError}</p>
+              <button onClick={() => setNotifyError('')} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
           <p className="text-[10px] text-gray-400 text-center font-semibold uppercase tracking-wider">
             {entries.length} cliente{entries.length !== 1 ? 's' : ''} en espera para este tramo
@@ -478,8 +483,10 @@ export default function Agenda() {
   const [waitlistPopup, setWaitlistPopup] = useState({ open: false, entries: [], time: '', hairdresser: '' });
   const [loadError, setLoadError] = useState(null);
   const [actionError, setActionError] = useState('');
+  const [savingAttendanceId, setSavingAttendanceId] = useState(null);
 
   const handleAttendance = async (aptId, attended) => {
+    setSavingAttendanceId(aptId);
     // 1. Marcar asistencia en la cita
     const { error } = await supabase
       .from('Citas')
@@ -487,6 +494,7 @@ export default function Agenda() {
       .eq('idCita', aptId);
 
     if (error) {
+      setSavingAttendanceId(null);
       setActionError('No se pudo registrar la asistencia. Inténtalo de nuevo.');
       return;
     }
@@ -509,6 +517,7 @@ export default function Agenda() {
         }
       }
     }
+    setSavingAttendanceId(null);
     setSelectedAptId(null);
   };
 
@@ -556,7 +565,7 @@ export default function Agenda() {
     if (error) {
       const { error: err2 } = await supabase.from('Ausencia').update({ cancelada: true }).eq('id', absenceId);
       if (err2) {
-        console.error('Error soft-deleting absence:', err2);
+        setActionError('No se pudo eliminar la ausencia. Inténtalo de nuevo.');
         loadAgenda(); // Revert on failure
       }
     }
@@ -730,7 +739,9 @@ export default function Agenda() {
 
   useEffect(() => {
     loadAgenda();
-  }, [currentDate, hairdresserMap]); // Reload when hairdresserMap is ready
+  // hairdresserMap is intentionally excluded: loadAgenda itself sets it, including it causes an infinite refetch loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDate]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -790,12 +801,14 @@ export default function Agenda() {
   }, [horarioInfo]);
 
   const handlePrevDay = () => {
+    setActionError('');
     const prev = new Date(currentDate);
     prev.setDate(prev.getDate() - 1);
     setCurrentDate(prev);
   };
 
   const handleNextDay = () => {
+    setActionError('');
     const next = new Date(currentDate);
     next.setDate(next.getDate() + 1);
     setCurrentDate(next);
@@ -1198,9 +1211,15 @@ export default function Agenda() {
                                         )}
 
                                         {selectedAptId === apt.id && (
-                                          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center gap-4 z-50" onClick={(e) => { e.stopPropagation(); setSelectedAptId(null); }}>
-                                            <button onClick={() => handleAttendance(apt.id, false)} className="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center shadow-sm"><X className="w-5 h-5"/></button>
-                                            <button onClick={() => handleAttendance(apt.id, true)} className="w-10 h-10 rounded-full bg-green-100 text-green-500 flex items-center justify-center shadow-sm"><Check className="w-5 h-5"/></button>
+                                          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center gap-4 z-50" onClick={(e) => { e.stopPropagation(); if (!savingAttendanceId) setSelectedAptId(null); }}>
+                                            {savingAttendanceId === apt.id ? (
+                                              <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                              <>
+                                                <button onClick={(e) => { e.stopPropagation(); handleAttendance(apt.id, false); }} className="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center shadow-sm"><X className="w-5 h-5"/></button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleAttendance(apt.id, true); }} className="w-10 h-10 rounded-full bg-green-100 text-green-500 flex items-center justify-center shadow-sm"><Check className="w-5 h-5"/></button>
+                                              </>
+                                            )}
                                           </div>
                                         )}
 
