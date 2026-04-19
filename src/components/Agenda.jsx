@@ -1282,25 +1282,27 @@ export default function Agenda() {
                                               <h2 className="text-[10px] md:text-[11px] font-bold leading-none truncate uppercase" title={apt.client}>{apt.client}</h2>
                                             </div>
                                             <div className="flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 mt-0.5">
-                                              <span className={`truncate text-[7px] md:text-[8px] font-bold uppercase px-1 py-[1px] rounded border w-fit shrink-0 ${getServiceBadge(apt.service)}`}>{apt.service}</span>
-                                              <div className="flex items-center gap-1 shrink-0">
+                                              <div className="flex-1 min-w-0 overflow-hidden">
+                                                <span className={`inline-block max-w-full truncate text-[9px] md:text-[8px] font-bold uppercase px-1 py-[1px] rounded border ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                              </div>
+                                              <div className="flex items-center gap-1 shrink-0 ml-1">
                                                 {editingPriceId === apt.id ? (
                                                   <div className="flex items-center gap-0.5 shrink-0">
                                                     <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-[10px] flex items-center justify-center select-none transition-colors">−</button>
-                                                    <span className="text-[7px] md:text-[8px] font-bold text-emerald-600 min-w-[18px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
+                                                    <span className="text-[9px] md:text-[8px] font-bold text-emerald-600 min-w-[18px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
                                                     <button onClick={(e) => { e.stopPropagation(); const v = (parseFloat(editingPriceValue) || 0) + 1; handlePriceArrowChange(apt.id, v); }} className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-[10px] flex items-center justify-center select-none transition-colors">+</button>
-                                                    <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[7px] leading-none ml-0.5 select-none">✕</button>
+                                                    <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[9px] md:text-[7px] leading-none ml-0.5 select-none">✕</button>
                                                   </div>
                                                 ) : (
                                                   <button
-                                                    className="text-[7px] md:text-[8px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-1 py-0 rounded border border-emerald-200 shrink-0 transition-colors"
+                                                    className="text-[9px] md:text-[8px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-1 py-0 rounded border border-emerald-200 shrink-0 transition-colors"
                                                     onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}
                                                   >
                                                     {apt.price != null ? `${apt.price}€` : <span className="text-gray-400 font-normal">+€</span>}
                                                   </button>
                                                 )}
-                                                <div className="flex items-center gap-0.5 text-[7px] md:text-[8px] text-gray-400 font-bold">
-                                                  <Phone className="w-2 h-2" />
+                                                <div className="flex items-center gap-0.5 text-[9px] md:text-[8px] text-gray-400 font-bold">
+                                                  <Phone className="w-2.5 h-2.5 md:w-2 md:h-2" />
                                                   <span>{formatPhoneDisplay(apt.phone)}</span>
                                                 </div>
                                               </div>
@@ -1332,8 +1334,10 @@ export default function Agenda() {
                                               )}
                                             </div>
                                             <div className="flex items-center justify-between gap-1 mt-auto pt-1 border-t border-gray-50 overflow-hidden shrink-0">
-                                              <span className={`truncate text-[8px] font-bold uppercase px-1 py-0 rounded border w-fit ${getServiceBadge(apt.service)}`}>{apt.service}</span>
-                                              <div className="flex shrink-0 items-center gap-0.5 text-[10px] sm:text-[11px] text-gray-400 font-bold"><Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3" /><span>{formatPhoneDisplay(apt.phone)}</span></div>
+                                              <div className="flex-1 min-w-0 overflow-hidden">
+                                                <span className={`inline-block max-w-full truncate text-[10px] md:text-[8px] font-bold uppercase px-1 py-0 rounded border ${getServiceBadge(apt.service)}`}>{apt.service}</span>
+                                              </div>
+                                              <div className="flex shrink-0 items-center gap-0.5 text-[10px] sm:text-[11px] text-gray-400 font-bold ml-1"><Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3" /><span>{formatPhoneDisplay(apt.phone)}</span></div>
                                             </div>
                                           </div>
                                         )}
@@ -1486,22 +1490,24 @@ export default function Agenda() {
                                           </div>
                                         )}
                                         <div className={`flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 ${apt.durationMins <= 15 ? 'mt-0.5' : 'mt-auto'} pb-0.5`}>
-                                          <span className={`${apt.durationMins <= 15 ? 'text-[6px]' : 'text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1`} title={apt.service}>{apt.service}</span>
-                                          <div className="flex items-center gap-1 shrink-0">
+                                          <div className="flex-1 min-w-0 overflow-hidden">
+                                            <span className={`inline-block max-w-full truncate ${apt.durationMins <= 15 ? 'text-[8px] md:text-[6px]' : 'text-[9px] md:text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700`} title={apt.service}>{apt.service}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1 shrink-0 ml-1">
                                             {apt.durationMins <= 15 && (editingPriceId === apt.id ? (
                                               <div className="flex items-center gap-0.5 shrink-0">
                                                 <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">−</button>
-                                                <span className="text-[6px] font-bold text-emerald-600 min-w-[16px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
+                                                <span className="text-[9px] md:text-[6px] font-bold text-emerald-600 min-w-[16px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
                                                 <button onClick={(e) => { e.stopPropagation(); const v = (parseFloat(editingPriceValue) || 0) + 1; handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">+</button>
-                                                <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[6px] leading-none ml-0.5 select-none">✕</button>
+                                                <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[9px] md:text-[6px] leading-none ml-0.5 select-none">✕</button>
                                               </div>
                                             ) : (
-                                              <button className="text-[6px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0 rounded border border-emerald-200" onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}>
+                                              <button className="text-[9px] md:text-[6px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0 rounded border border-emerald-200" onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}>
                                                 {apt.price != null ? `${apt.price}€` : '+€'}
                                               </button>
                                             ))}
-                                            <div className={`flex items-center gap-0.5 ${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} text-gray-400 font-bold`}>
-                                              <Phone className={`${apt.durationMins <= 15 ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
+                                            <div className={`flex items-center gap-0.5 ${apt.durationMins <= 15 ? 'text-[9px] md:text-[7px]' : 'text-[10px] md:text-[8px]'} text-gray-400 font-bold`}>
+                                              <Phone className={`${apt.durationMins <= 15 ? 'w-2 h-2 md:w-1.5 md:h-1.5' : 'w-2.5 h-2.5 md:w-2 md:h-2'}`} />
                                               <span>{formatPhoneDisplay(apt.phone)}</span>
                                             </div>
                                           </div>
@@ -1647,22 +1653,24 @@ export default function Agenda() {
                                          </div>
                                        )}
                                        <div className={`flex items-center justify-between gap-1 w-full overflow-hidden shrink-0 ${apt.durationMins <= 15 ? 'mt-0.5' : 'mt-auto'} pb-0.5`}>
-                                         <span className={`${apt.durationMins <= 15 ? 'text-[6px]' : 'text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700 truncate min-w-0 flex-1`} title={apt.service}>{apt.service}</span>
-                                         <div className="flex items-center gap-1 shrink-0">
+                                         <div className="flex-1 min-w-0 overflow-hidden">
+                                           <span className={`inline-block max-w-full truncate ${apt.durationMins <= 15 ? 'text-[8px] md:text-[6px]' : 'text-[9px] md:text-[7px]'} font-black uppercase px-1 py-0.5 rounded border border-gray-200 bg-gray-50 text-gray-700`} title={apt.service}>{apt.service}</span>
+                                         </div>
+                                         <div className="flex items-center gap-1 shrink-0 ml-1">
                                            {apt.durationMins <= 15 && (editingPriceId === apt.id ? (
                                              <div className="flex items-center gap-0.5 shrink-0">
                                                <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">−</button>
-                                               <span className="text-[6px] font-bold text-emerald-600 min-w-[16px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
+                                               <span className="text-[9px] md:text-[6px] font-bold text-emerald-600 min-w-[16px] text-center">{editingPriceValue !== '' ? `${editingPriceValue}€` : '0€'}</span>
                                                <button onClick={(e) => { e.stopPropagation(); const v = (parseFloat(editingPriceValue) || 0) + 1; handlePriceArrowChange(apt.id, v); }} className="text-emerald-600 hover:text-emerald-800 font-bold text-[9px] leading-none w-2.5 h-2.5 flex items-center justify-center select-none">+</button>
-                                               <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[6px] leading-none ml-0.5 select-none">✕</button>
+                                               <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[9px] md:text-[6px] leading-none ml-0.5 select-none">✕</button>
                                              </div>
                                            ) : (
-                                             <button className="text-[6px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0 rounded border border-emerald-200" onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}>
+                                             <button className="text-[9px] md:text-[6px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0 rounded border border-emerald-200" onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}>
                                                {apt.price != null ? `${apt.price}€` : '+€'}
                                              </button>
                                            ))}
-                                           <div className={`flex items-center gap-0.5 ${apt.durationMins <= 15 ? 'text-[7px]' : 'text-[8px]'} text-gray-400 font-bold`}>
-                                             <Phone className={`${apt.durationMins <= 15 ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
+                                           <div className={`flex items-center gap-0.5 ${apt.durationMins <= 15 ? 'text-[9px] md:text-[7px]' : 'text-[10px] md:text-[8px]'} text-gray-400 font-bold`}>
+                                             <Phone className={`${apt.durationMins <= 15 ? 'w-2 h-2 md:w-1.5 md:h-1.5' : 'w-2.5 h-2.5 md:w-2 md:h-2'}`} />
                                              <span>{formatPhoneDisplay(apt.phone)}</span>
                                            </div>
                                          </div>
