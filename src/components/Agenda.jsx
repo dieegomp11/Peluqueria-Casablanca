@@ -1227,7 +1227,7 @@ export default function Agenda() {
                                       <article 
                                         key={apt.id}
                                         onClick={(e) => { e.stopPropagation(); if (apt.status !== 'completed' && apt.status !== 'no-show') setSelectedAptId(apt.id); }}
-                                        className={`w-full rounded-xl border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer flex flex-col justify-between relative shrink-0 ${apt.durationMins < 25 ? 'p-1 px-1.5' : 'p-3'} ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200 hover:border-black'}`}
+                                        className={`w-full rounded-xl border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer flex flex-col justify-between relative shrink-0 ${apt.durationMins < 25 ? 'p-1 px-1.5' : 'p-2 md:p-3'} ${apt.status === 'completed' ? 'bg-green-50 border-green-300' : apt.status === 'no-show' ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200 hover:border-black'}`}
                                         style={{ height: cardHeight, zIndex: 20 - idx }}
                                       >
                                         {!(selectedAptId === apt.id || confirmCancelId === apt.id) && apt.status === 'pending' && !isAptPast && (
@@ -1316,7 +1316,7 @@ export default function Agenda() {
                                               </span>
                                               <h2 className="text-sm font-bold leading-none truncate uppercase">{apt.client}</h2>
                                             </div>
-                                            <div className="shrink-0 mt-1">
+                                            <div className="shrink-0 mt-0.5 md:mt-1">
                                               {editingPriceId === apt.id ? (
                                                 <div className="flex items-center gap-1.5">
                                                   <button onClick={(e) => { e.stopPropagation(); const v = Math.max(0, (parseFloat(editingPriceValue) || 0) - 1); handlePriceArrowChange(apt.id, v); }} className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-base flex items-center justify-center select-none transition-colors">−</button>
@@ -1326,7 +1326,7 @@ export default function Agenda() {
                                                 </div>
                                               ) : (
                                                 <button
-                                                  className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded-lg border border-emerald-200 transition-colors"
+                                                  className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 md:py-1 rounded-lg border border-emerald-200 transition-colors"
                                                   onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}
                                                 >
                                                   {apt.price != null ? `${apt.price}€` : <span className="text-gray-400 font-normal">+ precio</span>}
