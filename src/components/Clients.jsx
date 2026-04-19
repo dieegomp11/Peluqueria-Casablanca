@@ -101,6 +101,16 @@ export default function Clients() {
     return digits.length > 9 ? digits.slice(-9) : phone.trim();
   };
 
+  // Devuelve el número en formato E.164 (+34XXXXXXXXX) para el href tel:
+  const formatPhoneTel = (phone) => {
+    if (!phone) return '';
+    const digits = phone.replace(/[\s\-().+]/g, '');
+    if (digits.length === 9) return `+34${digits}`;           // 697123456 → +34697123456
+    if (digits.startsWith('34') && digits.length === 11) return `+${digits}`; // 34697... → +34697...
+    if (digits.startsWith('0034')) return `+${digits.slice(4)}`; // 0034... → +34...
+    return phone.startsWith('+') ? phone.replace(/\s/g, '') : `+${digits}`;
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Nunca';
     const [yyyy, mm, dd] = dateString.split('T')[0].split('-');
@@ -179,7 +189,7 @@ export default function Clients() {
                         {client.name}
                       </h2>
                       <a
-                        href={`tel:${client.phone.replace(/\\s+/g, '')}`}
+                        href={`tel:${formatPhoneTel(client.phone)}`}
                         onClick={(e) => e.stopPropagation()}
                         className="inline-flex flex-row flex-nowrap items-center justify-center gap-2 text-gray-600 bg-gray-50 hover:bg-gray-100 hover:text-black transition-colors py-1.5 px-2 sm:px-4 rounded-xl border border-gray-100 shrink-0"
                         title="Llamar al cliente"
@@ -292,7 +302,7 @@ export default function Clients() {
                 <div className="w-full border-2 border-gray-100 rounded-xl p-3 flex justify-between items-center bg-white transition-colors">
                   <span className="font-medium text-black">{formatPhoneDisplay(selectedClient.phone)}</span>
                   <a 
-                    href={`tel:${selectedClient.phone.replace(/\\s+/g, '')}`}
+                    href={`tel:${formatPhoneTel(selectedClient.phone)}`}
                     className="p-2 bg-black text-white rounded-lg hover:bg-slate-900 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
                     title="Llamar"
                   >
