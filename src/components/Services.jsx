@@ -123,20 +123,21 @@ export default function Services() {
         }}
       />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 relative z-10 flex flex-col h-full">
-        <header className="flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-8 mb-6 border-b-2 border-black pb-4 shrink-0">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 pb-4 pt-14 sm:p-6 lg:p-8 relative z-10 flex flex-col h-full">
+        <header className="flex flex-row items-center justify-between gap-3 sm:gap-8 mb-4 sm:mb-6 border-b-2 border-black pb-3 sm:pb-4 shrink-0">
           <div className="shrink-0">
-            <h1 className="text-5xl font-bold tracking-normal leading-none mb-1 text-black" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-normal leading-none mb-1 text-black" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
               Servicios
             </h1>
           </div>
-          <div className="flex-1 flex justify-end">
+          <div className="shrink-0">
             <button
               onClick={handleOpenAddModal}
-              className="bg-black text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all shadow-xl shadow-black/10 active:scale-95"
+              className="bg-black text-white px-4 sm:px-8 py-2.5 sm:py-3 rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 hover:bg-zinc-800 transition-all shadow-xl shadow-black/10 active:scale-95 whitespace-nowrap"
             >
-              <Plus className="w-5 h-5" />
-              Nuevo Servicio
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Nuevo Servicio</span>
+              <span className="sm:hidden">Nuevo</span>
             </button>
           </div>
         </header>
@@ -151,17 +152,17 @@ export default function Services() {
               <button onClick={fetchServices} className="mt-2 px-5 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-colors">Reintentar</button>
             </div>
           ) : loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 animate-pulse">
               {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                 <div key={i} className="h-48 bg-gray-100 rounded-3xl" />
               ))}
             </div>
           ) : services.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pb-12">
               {services.map(service => (
                 <article
                   key={service.idCorte}
-                  className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-black/5 transition-all duration-500 group relative flex flex-col overflow-hidden"
+                  className="bg-white rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-black/5 transition-all duration-500 group relative flex flex-col overflow-hidden"
                 >
                   {/* Decorative */}
                   <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-500">
@@ -169,41 +170,41 @@ export default function Services() {
                   </div>
 
                   {/* Name */}
-                  <h2 className="text-2xl font-black text-gray-900 leading-tight pr-10 uppercase tracking-tight">
+                  <h2 className="text-base sm:text-2xl font-black text-gray-900 leading-tight pr-6 sm:pr-10 uppercase tracking-tight">
                     {service.nombreCorte}
                   </h2>
 
                   <div className="flex-1" />
 
                   {/* Price + Duration near the buttons */}
-                  <div className="flex items-center justify-between mt-6 mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
-                        <Coins className="w-3.5 h-3.5 text-black" />
+                  <div className="flex items-center justify-between mt-3 sm:mt-6 mb-2 sm:mb-3">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
+                        <Coins className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-black" />
                       </div>
-                      <span className="text-2xl font-black text-black">{service.precioCorte}€</span>
+                      <span className="text-lg sm:text-2xl font-black text-black">{service.precioCorte}€</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
-                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
+                        <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400" />
                       </div>
-                      <span className="font-bold uppercase tracking-widest text-xs text-gray-500">{service.duracionCorteMins} min</span>
+                      <span className="font-bold uppercase tracking-widest text-[10px] sm:text-xs text-gray-500">{service.duracionCorteMins}m</span>
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-3 border-t border-gray-50">
+                  <div className="flex gap-1.5 sm:gap-2 pt-2 sm:pt-3 border-t border-gray-50">
                     <button
                       onClick={() => handleOpenEditModal(service)}
-                      className="flex-1 bg-gray-50 hover:bg-black hover:text-white text-gray-900 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
+                      className="flex-1 bg-gray-50 hover:bg-black hover:text-white text-gray-900 py-2.5 sm:py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] sm:text-[10px] transition-all flex items-center justify-center gap-1.5 sm:gap-2"
                     >
                       <Edit2 className="w-3 h-3" />
                       Editar
                     </button>
                     <button
                       onClick={() => handleOpenDeleteConfirm(service)}
-                      className="w-12 bg-gray-50 hover:bg-red-50 text-red-500 py-3 rounded-xl font-bold transition-all flex items-center justify-center"
+                      className="w-9 sm:w-12 bg-gray-50 hover:bg-red-50 text-red-500 py-2.5 sm:py-3 rounded-xl font-bold transition-all flex items-center justify-center"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </article>
@@ -228,18 +229,18 @@ export default function Services() {
 
       {/* Add/Edit Modal */}
       {isModalOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-500" onClick={handleModalClose} />
-          <div className="relative w-full max-w-md bg-white rounded-[3rem] p-10 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 overflow-hidden">
-            <button onClick={handleModalClose} className="absolute right-8 top-8 text-gray-400 hover:text-black transition-colors">
+          <div className="relative w-full sm:max-w-md bg-white rounded-t-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl animate-in slide-in-from-bottom-12 duration-500 max-h-[95dvh] overflow-y-auto modal-scroll-container">
+            <button onClick={handleModalClose} className="absolute right-5 top-5 sm:right-8 sm:top-8 text-gray-400 hover:text-black transition-colors">
               <X className="w-6 h-6" />
             </button>
 
-            <div className="mb-8">
-              <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center mb-5 shadow-xl shadow-black/20">
-                <Scissors className="w-7 h-7 text-white" />
+            <div className="mb-6 sm:mb-8">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black rounded-2xl flex items-center justify-center mb-4 sm:mb-5 shadow-xl shadow-black/20">
+                <Scissors className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
-              <h2 className="text-2xl font-black text-black uppercase tracking-tight mb-1">
+              <h2 className="text-xl sm:text-2xl font-black text-black uppercase tracking-tight mb-1">
                 {editingService ? editingService.nombreCorte : 'Nuevo Servicio'}
               </h2>
               <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
@@ -330,33 +331,33 @@ export default function Services() {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && createPortal(
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-6">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-500" onClick={() => setIsDeleteConfirmOpen(false)} />
-          <div className="relative w-full max-w-sm bg-black border border-white/10 rounded-[2.5rem] p-10 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-12 duration-500">
-            <button onClick={() => setIsDeleteConfirmOpen(false)} className="absolute right-6 top-6 text-gray-500 hover:text-white transition-colors">
+          <div className="relative w-full sm:max-w-sm bg-black border border-white/10 rounded-t-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl animate-in slide-in-from-bottom-12 duration-500">
+            <button onClick={() => setIsDeleteConfirmOpen(false)} className="absolute right-5 top-5 sm:right-6 sm:top-6 text-gray-500 hover:text-white transition-colors">
               <X className="w-6 h-6" />
             </button>
             <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-8 ring-8 ring-red-500/5">
-                <AlertTriangle className="w-10 h-10 text-red-500" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-5 sm:mb-8 ring-8 ring-red-500/5">
+                <AlertTriangle className="w-8 h-8 sm:w-10 sm:h-10 text-red-500" />
               </div>
-              <h2 className="text-3xl font-black text-white uppercase tracking-[0.1em] mb-4">¿Eliminar Servicio?</h2>
-              <p className="text-gray-400 text-sm font-bold uppercase tracking-widest opacity-80 mb-10 leading-relaxed">
+              <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-[0.1em] mb-3 sm:mb-4">¿Eliminar Servicio?</h2>
+              <p className="text-gray-400 text-xs sm:text-sm font-bold uppercase tracking-widest opacity-80 mb-6 sm:mb-10 leading-relaxed">
                 Estás a punto de borrar <span className="text-white">"{deletingService?.nombreCorte}"</span>. Esta acción no se puede deshacer.
               </p>
               {saveError && <div className="mb-4 p-4 bg-red-500/10 text-red-400 rounded-2xl text-[10px] font-black uppercase tracking-widest leading-snug">⚠ {saveError}</div>}
-              <div className="grid grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
                 <button
                   onClick={() => setIsDeleteConfirmOpen(false)}
-                  className="bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-[0.1em] py-5 rounded-2xl transition-all active:scale-95 border border-white/5"
+                  className="bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-[0.1em] py-4 sm:py-5 rounded-2xl transition-all active:scale-95 border border-white/5 text-sm"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-[0.1em] py-5 rounded-2xl shadow-xl shadow-red-600/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-[0.1em] py-4 sm:py-5 rounded-2xl shadow-xl shadow-red-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 text-sm"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                   Eliminar
                 </button>
               </div>

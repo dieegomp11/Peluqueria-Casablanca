@@ -124,16 +124,16 @@ export default function Clients() {
         }}
       />
       
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 relative z-10 flex flex-col h-full">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 pb-4 pt-14 sm:p-6 lg:p-8 relative z-10 flex flex-col h-full">
         {/* Header */}
-        <header className="flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-8 mb-6 border-b-2 border-black pb-4 shrink-0">
+        <header className="flex flex-col lg:flex-row lg:items-end gap-3 sm:gap-6 lg:gap-8 mb-4 sm:mb-6 border-b-2 border-black pb-3 sm:pb-4 shrink-0">
           <div className="shrink-0">
-            <h1 className="text-5xl font-bold tracking-normal leading-none mb-1 text-black" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-normal leading-none mb-1 text-black" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
               Listado de Clientes
             </h1>
           </div>
-          
-          <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-end gap-4 lg:pb-1 lg:ml-8">
+
+          <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-4 lg:pb-1 lg:ml-8">
             <div className="flex-1 flex items-center gap-3 bg-white border-2 border-gray-100 focus-within:border-black rounded-xl shadow-sm transition-colors px-4">
               <User className="w-4 h-4 text-gray-400 shrink-0" />
               <input
@@ -170,22 +170,22 @@ export default function Clients() {
                   onClick={() => setSelectedClient(client)}
                   className="bg-white rounded-xl py-3 px-4 border border-gray-100 shadow-sm hover:shadow-md hover:border-black transition-all duration-200 cursor-pointer flex justify-between items-center group"
                 >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="w-12 h-12 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-base text-black uppercase shrink-0 group-hover:bg-black group-hover:text-white group-hover:border-black transition-colors">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-sm sm:text-base text-black uppercase shrink-0 group-hover:bg-black group-hover:text-white group-hover:border-black transition-colors">
                       {client.name.substring(0, 2)}
                     </div>
-                    <div className="flex items-center gap-6 sm:gap-12 flex-1 min-w-0 pt-0.5">
-                      <h2 className="text-[15px] font-extrabold truncate text-gray-900 leading-none w-28 sm:w-48 shrink-0" title={client.name}>
+                    <div className="flex items-center gap-2 sm:gap-8 flex-1 min-w-0 pt-0.5">
+                      <h2 className="text-[14px] sm:text-[15px] font-extrabold truncate text-gray-900 leading-none flex-1 min-w-0" title={client.name}>
                         {client.name}
                       </h2>
-                      <a 
+                      <a
                         href={`tel:${client.phone.replace(/\\s+/g, '')}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex flex-row flex-nowrap items-center justify-center gap-3 text-gray-600 bg-gray-50 hover:bg-gray-100 hover:text-black transition-colors py-1.5 px-4 rounded-xl border border-gray-100 shrink-0 min-w-max"
+                        className="inline-flex flex-row flex-nowrap items-center justify-center gap-2 text-gray-600 bg-gray-50 hover:bg-gray-100 hover:text-black transition-colors py-1.5 px-2 sm:px-4 rounded-xl border border-gray-100 shrink-0"
                         title="Llamar al cliente"
                       >
                         <Phone className="w-4 h-4 shrink-0 -mt-[1px]" />
-                        <span className="text-[14px] font-bold tracking-widest leading-none pt-[1px] whitespace-nowrap">{formatPhoneDisplay(client.phone)}</span>
+                        <span className="hidden sm:inline text-[14px] font-bold tracking-widest leading-none pt-[1px] whitespace-nowrap">{formatPhoneDisplay(client.phone)}</span>
                       </a>
                     </div>
                   </div>
@@ -266,26 +266,26 @@ export default function Clients() {
           onClick={() => setSelectedClient(null)}
           style={{ zIndex: 9999 }}
         >
-          <div 
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 cursor-default"
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 cursor-default flex flex-col max-h-[90dvh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-gray-800" />
-                <h2 className="text-lg font-bold uppercase tracking-tight text-gray-900 truncate" title={selectedClient.name}>
+            <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <User className="w-5 h-5 text-gray-800 shrink-0" />
+                <h2 className="text-base sm:text-lg font-bold uppercase tracking-tight text-gray-900 truncate" title={selectedClient.name}>
                   {selectedClient.name}
                 </h2>
               </div>
-              <button 
-                onClick={() => setSelectedClient(null)} 
+              <button
+                onClick={() => setSelectedClient(null)}
                 className="p-2 text-gray-400 hover:text-black hover:bg-gray-200 rounded-full transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
-            <div className="p-6 space-y-6">
+
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto modal-scroll-container">
               {/* Phone Line */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Teléfono</label>
