@@ -439,59 +439,62 @@ export default function Dashboard() {
       <main className="flex-1 w-full p-4 sm:p-6 md:p-8 flex flex-col h-full min-h-0 relative z-10 overflow-hidden gap-4 sm:gap-6">
         
         {/* Header & Controls */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0 pb-2 sm:pb-4 border-b border-white/10">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 sm:gap-4 shrink-0 pb-2 sm:pb-4 border-b border-white/10">
           <div>
-             <h1 className="text-5xl font-bold tracking-normal leading-none text-white" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
+             <h1 className="text-2xl sm:text-5xl font-bold tracking-normal leading-none text-white" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
                Dashboard
              </h1>
-
           </div>
 
-          <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            {/* Filtro tipo período */}
             <div className="flex bg-white/5 p-1 rounded-xl w-full sm:w-auto border border-white/10">
               {['day', 'week', 'month', 'year'].map(ft => (
-                <button 
+                <button
                   key={ft}
                   onClick={() => setFilterType(ft)}
-                  className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filterType === ft ? 'bg-white text-black shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                  className={`flex-1 sm:flex-none px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filterType === ft ? 'bg-white text-black shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                 >
-                  {ft === 'day' ? 'Día' : ft === 'week' ? 'Semana' : ft === 'month' ? 'Mes' : 'Año'}
+                  {ft === 'day' ? 'Día' : ft === 'week' ? 'Sem.' : ft === 'month' ? 'Mes' : 'Año'}
                 </button>
               ))}
             </div>
-            
-            {!isCurrentPeriod && (
-              <button
-                onClick={() => setReferenceDate(new Date())}
-                className="px-2 py-1 text-xs font-black uppercase tracking-widest text-[#38bdf8] bg-[#38bdf8]/10 border border-[#38bdf8]/30 rounded-lg hover:bg-[#38bdf8]/20 transition-colors whitespace-nowrap"
-              >
-                Ahora
-              </button>
-            )}
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-1.5 shadow-sm w-full sm:w-auto justify-between sm:justify-start relative" ref={menuRef}>
-              <button onClick={prevPeriod} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-gray-400 hover:text-white"/></button>
-              
-              <button 
-                onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
-                className="font-bold text-sm min-w-[140px] text-center text-white capitalize px-2 py-1 hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <CalendarIcon className="w-4 h-4 text-gray-400" />
-                {getLabel()}
-              </button>
 
-              {isDateMenuOpen && (
-                <CustomDatePicker 
-                  currentDate={referenceDate}
-                  filterType={filterType}
-                  onSelectDate={(d) => {
-                    setReferenceDate(d);
-                    setIsDateMenuOpen(false);
-                  }}
-                  onClose={() => setIsDateMenuOpen(false)}
-                />
+            {/* Navegación fecha */}
+            <div className="flex items-center gap-1 sm:gap-3">
+              {!isCurrentPeriod && (
+                <button
+                  onClick={() => setReferenceDate(new Date())}
+                  className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-[#38bdf8] bg-[#38bdf8]/10 border border-[#38bdf8]/30 rounded-lg hover:bg-[#38bdf8]/20 transition-colors whitespace-nowrap"
+                >
+                  Ahora
+                </button>
               )}
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shadow-sm flex-1 sm:flex-none justify-between sm:justify-start relative" ref={menuRef}>
+                <button onClick={prevPeriod} className="p-1 sm:p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 hover:text-white"/></button>
 
-              <button onClick={nextPeriod} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ChevronRight className="w-5 h-5 text-gray-400 hover:text-white"/></button>
+                <button
+                  onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
+                  className="font-bold text-xs sm:text-sm min-w-0 sm:min-w-[140px] text-center text-white capitalize px-1.5 sm:px-2 py-1 hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-none"
+                >
+                  <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                  <span className="truncate">{getLabel()}</span>
+                </button>
+
+                {isDateMenuOpen && (
+                  <CustomDatePicker
+                    currentDate={referenceDate}
+                    filterType={filterType}
+                    onSelectDate={(d) => {
+                      setReferenceDate(d);
+                      setIsDateMenuOpen(false);
+                    }}
+                    onClose={() => setIsDateMenuOpen(false)}
+                  />
+                )}
+
+                <button onClick={nextPeriod} className="p-1 sm:p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 hover:text-white"/></button>
+              </div>
             </div>
           </div>
         </header>
@@ -509,24 +512,24 @@ export default function Dashboard() {
             <div className="w-8 h-8 border-4 border-[#38bdf8] border-t-transparent flex items-center justify-center rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="flex-1 min-h-0 flex flex-col gap-4 sm:gap-6 overflow-hidden">
-            
+          <div className="flex-1 min-h-0 flex flex-col gap-4 sm:gap-6 overflow-y-auto md:overflow-hidden dashboard-scroll-container">
+
             {/* Top Cards: Core KPIs */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 shrink-0 min-h-[5rem] md:min-h-[7rem] lg:min-h-[7rem]">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 shrink-0 min-h-[4.5rem] md:min-h-[7rem] lg:min-h-[7rem]">
               <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 flex flex-col justify-center relative overflow-hidden backdrop-blur-md">
                 <div className="absolute right-[-10px] top-[-10px] sm:right-0 sm:top-0 opacity-10">
                   <Scissors className="w-16 h-16 sm:w-24 sm:h-24" />
                 </div>
-                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#38bdf8] mb-1 sm:mb-2">Cortes Atendidos</p>
-                <div className="text-3xl sm:text-5xl font-black text-white">{attendedCitas.length}</div>
+                <p className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-[#38bdf8] mb-1 sm:mb-2 leading-tight">Cortes</p>
+                <div className="text-2xl sm:text-5xl font-black text-white">{attendedCitas.length}</div>
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 flex flex-col justify-center relative overflow-hidden backdrop-blur-md">
                 <div className="absolute right-[-10px] top-[-10px] sm:right-0 sm:top-0 opacity-10">
                   <TrendingUp className="w-16 h-16 sm:w-24 sm:h-24" />
                 </div>
-                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-green-400 mb-1 sm:mb-2">Facturado</p>
-                <div className="text-2xl sm:text-4xl lg:text-5xl font-black text-white">{totalRevenue}€</div>
+                <p className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-green-400 mb-1 sm:mb-2 leading-tight">Facturado</p>
+                <div className="text-xl sm:text-4xl lg:text-5xl font-black text-white">{totalRevenue}€</div>
               </div>
 
               <div 
@@ -536,21 +539,21 @@ export default function Dashboard() {
                 <div className="absolute right-[-10px] top-[-10px] sm:right-0 sm:top-0 opacity-10">
                   <AlertCircle className="w-16 h-16 sm:w-24 sm:h-24" />
                 </div>
-                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-400 mb-1 sm:mb-2 flex items-center gap-1">
-                  No Shows {noShows.length > 0 && <span className="lowercase font-normal underline decoration-dotted">ver lista →</span>}
+                <p className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-red-400 mb-1 sm:mb-2 flex items-center gap-1 leading-tight flex-wrap">
+                  No Shows {noShows.length > 0 && <span className="hidden sm:inline lowercase font-normal underline decoration-dotted">ver lista →</span>}
                 </p>
-                <div className="text-3xl sm:text-5xl font-black text-red-500">{noShows.length}</div>
+                <div className="text-2xl sm:text-5xl font-black text-red-500">{noShows.length}</div>
               </div>
             </div>
 
             {/* Bottom Section: Robust Flex layout for iPad/Safari */}
-            <div className="flex-1 flex flex-col md:flex-row gap-4 sm:gap-6 min-h-0 overflow-hidden">
-               
+            <div className="flex flex-col md:flex-row md:flex-1 gap-4 sm:gap-6 md:min-h-0 md:overflow-hidden">
+
                {/* Hairdressers List & Charts */}
-               <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-[2] min-h-[300px] md:min-h-0 overflow-hidden">
+               <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-[2] md:min-h-0 md:overflow-hidden">
                  <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Desglose por Peluquero</h2>
                  
-                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-6 pr-1 pb-8 dashboard-scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
+                 <div className="md:flex-1 md:overflow-y-auto custom-scrollbar flex flex-col gap-6 pr-1 pb-4 md:pb-8 dashboard-scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
                    {/* Small Summary Cards */}
                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
                      {Object.values(byHairdresser).map(hd => (
@@ -615,10 +618,10 @@ export default function Dashboard() {
                </div>
 
                {/* Trends */}
-               <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-1 min-h-[400px] md:min-h-0 overflow-hidden">
+               <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 sm:p-6 flex flex-col backdrop-blur-md md:flex-1 md:min-h-0 md:overflow-hidden">
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 shrink-0">Tendencias del Periodo</h2>
-                  
-                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1 pb-8 dashboard-scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
+
+                  <div className="md:flex-1 md:overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1 pb-4 md:pb-8 dashboard-scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
                     {filterType !== 'day' && (
                       <div className="flex flex-col gap-3 shrink-0">
                         <div className="bg-black/50 border border-white/10 rounded-2xl p-3 flex items-center justify-between">
