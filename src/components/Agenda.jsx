@@ -473,7 +473,7 @@ export default function Agenda() {
   const menuRef = useRef(null);
   const scrollContainerRef = useRef(null);
   
-  const SLOT_HEIGHT = 7; // rem
+  const SLOT_HEIGHT_VAL = 7; // rem tablet/desktop
 
   const [confirmCancelId, setConfirmCancelId] = useState(null);
   const [confirmDeleteAbsenceId, setConfirmDeleteAbsenceId] = useState(null);
@@ -496,7 +496,8 @@ export default function Agenda() {
   }, []);
 
   const visibleHairdressers = isMobile ? [mobileSelectedHd] : hairdressers;
-  const gridColsClass = isMobile ? 'grid-cols-[50px_1fr]' : 'grid-cols-[50px_1fr_1fr_1fr_1fr]';
+  const gridColsClass = isMobile ? 'grid-cols-[44px_1fr]' : 'grid-cols-[50px_1fr_1fr_1fr_1fr]';
+  const SLOT_HEIGHT = isMobile ? 5.5 : SLOT_HEIGHT_VAL;
 
   const handlePriceArrowChange = async (aptId, newValue) => {
     setEditingPriceValue(String(newValue));
@@ -856,20 +857,25 @@ export default function Agenda() {
         }}
       />
       
-      <main className="flex-1 w-full pl-8 pr-8 pt-4 pb-0 relative z-10 flex flex-col h-full min-h-0 overflow-hidden max-w-full">
-        <header className="flex justify-between items-end mb-6 border-b-2 border-black pb-4 shrink-0">
-          <div>
+      <main className="flex-1 w-full px-2 sm:pl-8 sm:pr-8 pt-2 sm:pt-4 pb-0 relative z-10 flex flex-col h-full min-h-0 overflow-hidden max-w-full">
+        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-2 sm:mb-6 border-b-2 border-black pb-2 sm:pb-4 shrink-0 gap-2">
+          {/* Título — solo tablet+ */}
+          <div className="hidden sm:block">
             <h1 className="text-5xl font-bold tracking-normal leading-none mb-1" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
               Casablanca <span className="text-gray-400 font-light italic text-3xl ml-1">Barbershop</span>
             </h1>
           </div>
-          
-          <div className="text-right flex items-end gap-6">
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-2 sm:gap-6 w-full sm:w-auto">
+            {/* Título compacto — solo mobile */}
+            <h1 className="sm:hidden text-xl font-bold leading-none shrink-0" style={{ fontFamily: "'Aref Ruqaa', serif" }}>Casablanca</h1>
+
+            <div className="flex flex-col items-end gap-1 sm:gap-2 flex-1 sm:flex-initial">
+              <div className="flex items-center gap-1.5 sm:gap-3 flex-wrap justify-end">
+                {/* Horario — solo icono en mobile */}
                 <button
                   onClick={() => setIsHorarioModalOpen(true)}
-                  className={`px-3 py-1 font-bold text-sm rounded-lg transition-all flex items-center gap-1.5 shadow-sm hover:shadow border-2 ${
+                  className={`p-1.5 sm:px-3 sm:py-1 font-bold text-sm rounded-lg transition-all flex items-center gap-1.5 shadow-sm hover:shadow border-2 ${
                     horarioData?.abierto === true
                       ? 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100'
                       : horarioData?.abierto === false
@@ -877,55 +883,53 @@ export default function Agenda() {
                       : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
                   }`}
                 >
-                  <span className={`w-2 h-2 rounded-full ${horarioData?.abierto === true ? 'bg-green-500' : horarioData?.abierto === false ? 'bg-red-400' : 'bg-gray-300'}`} />
-                  {horarioData?.abierto === true ? 'Abierto' : horarioData?.abierto === false ? 'Cerrado' : 'Sin horario'}
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${horarioData?.abierto === true ? 'bg-green-500' : horarioData?.abierto === false ? 'bg-red-400' : 'bg-gray-300'}`} />
+                  <span className="hidden sm:inline">{horarioData?.abierto === true ? 'Abierto' : horarioData?.abierto === false ? 'Cerrado' : 'Sin horario'}</span>
                 </button>
 
+                {/* Ausencia — solo icono en mobile */}
                 <button
                   onClick={() => setIsAbsenceModalOpen(true)}
-                  className="px-3 py-1 font-bold text-sm bg-black text-white rounded-lg transition-all hover:bg-slate-800 flex items-center gap-1.5 shadow-sm hover:shadow"
+                  className="p-1.5 sm:px-3 sm:py-1 font-bold text-sm bg-black text-white rounded-lg transition-all hover:bg-slate-800 flex items-center gap-1.5 shadow-sm hover:shadow"
                 >
                   <UserX className="w-4 h-4"/>
-                  Ausencia
+                  <span className="hidden sm:inline">Ausencia</span>
                 </button>
 
+                {/* Lista de espera */}
                 {(() => {
                   const THREE_H = 3 * 60 * 60 * 1000;
                   const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
                   const waitlistCount = waitlistEntries.filter(w => {
                     if (w.date !== currentFormattedDate || w.denegado || w.notificado) return false;
-                    // Ignorar entradas cuyo slot ya pasó
                     const slotEnd = Math.floor(w.startMins / 30) * 30 + 30;
                     if (currentFormattedDate < strToday || (currentFormattedDate === strToday && slotEnd < nowMins)) return false;
-                    // Only count if visible (slot free) AND no pending blocking notification in the same group
                     return hairdressers.some(hd => {
                       const hdId = Object.entries(hairdresserMap).find(([k, v]) => v === hd)?.[0];
                       const matchHd = !w.hairdresserId || String(w.hairdresserId) === hdId;
                       if (!matchHd) return false;
                       const slotStartMins = Math.floor(w.startMins / 30) * 30;
                       const nextSlotMins = slotStartMins + 30;
-                      // Slot must be free of appointments
                       const slotApts = appointments.filter(a => {
                         if (a.date !== currentFormattedDate || a.hairdresser !== hd) return false;
                         const aptMins = timeToMins(a.time);
                         return aptMins >= slotStartMins && aptMins < nextSlotMins;
                       });
                       if (slotApts.length > 0) return false;
-                      // No blocking notification in the same group (same slot + hairdresser)
                       const groupHasBlocking = waitlistEntries.some(other => {
                         if (other.date !== currentFormattedDate || !other.notificado || other.denegado) return false;
                         const otherHdId = Object.entries(hairdresserMap).find(([k, v]) => v === hd)?.[0];
                         const otherMatchHd = !other.hairdresserId || String(other.hairdresserId) === otherHdId;
                         if (!otherMatchHd) return false;
                         if (other.startMins < slotStartMins || other.startMins >= nextSlotMins) return false;
-                        if (!other.fechaEnvio) return true; // sin fecha → bloquear por precaución
+                        if (!other.fechaEnvio) return true;
                         return (Date.now() - new Date(other.fechaEnvio).getTime()) < THREE_H;
                       });
                       return !groupHasBlocking;
                     });
                   }).length;
                   return waitlistCount > 0 ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-violet-100 border border-violet-200 rounded-lg">
+                    <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-violet-100 border border-violet-200 rounded-lg">
                       <Hourglass className="w-3.5 h-3.5 text-violet-600" />
                       <span className="text-[11px] font-black text-violet-700 uppercase tracking-wider">{waitlistCount}</span>
                     </div>
@@ -940,21 +944,23 @@ export default function Agenda() {
                     Hoy
                   </button>
                 )}
-                <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+
+                {/* Navegación de fecha */}
+                <div className="flex items-center gap-0.5 sm:gap-1 bg-white border border-gray-200 rounded-lg p-0.5 sm:p-1 shadow-sm">
                   <button onClick={handlePrevDay} className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="Día anterior">
-                    <ChevronLeft className="w-5 h-5"/>
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5"/>
                   </button>
                   <div className="relative flex items-center" ref={menuRef}>
-                    <button 
+                    <button
                       onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
-                      className={`px-3 py-1 font-semibold text-sm hover:bg-gray-100 rounded transition-colors flex items-center gap-2 ${isDateMenuOpen ? 'bg-gray-100' : ''}`}
+                      className={`px-2 sm:px-3 py-1 font-semibold text-xs sm:text-sm hover:bg-gray-100 rounded transition-colors flex items-center gap-1.5 sm:gap-2 ${isDateMenuOpen ? 'bg-gray-100' : ''}`}
                     >
-                      <CalendarIcon className="w-4 h-4"/>
+                      <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4"/>
                       {isToday ? 'Hoy' : currentDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                     </button>
                     {isDateMenuOpen && (
-                      <CustomDatePicker 
-                        currentDate={currentDate} 
+                      <CustomDatePicker
+                        currentDate={currentDate}
                         onSelectDate={(date) => {
                           setCurrentDate(date);
                           setIsDateMenuOpen(false);
@@ -964,11 +970,13 @@ export default function Agenda() {
                     )}
                   </div>
                   <button onClick={handleNextDay} className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="Día siguiente">
-                    <ChevronRight className="w-5 h-5"/>
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5"/>
                   </button>
                 </div>
               </div>
-              <p className="text-xs sm:text-sm text-gray-500 capitalize font-medium min-w-[200px] text-right">
+
+              {/* Fecha larga — solo tablet+ */}
+              <p className="hidden sm:block text-xs sm:text-sm text-gray-500 capitalize font-medium min-w-[200px] text-right">
                 {currentDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
@@ -976,15 +984,15 @@ export default function Agenda() {
         </header>
 
         {isMobile && (
-          <div className="flex gap-2 mb-3 shrink-0">
+          <div className="flex gap-1.5 mb-2 shrink-0">
             {hairdressers.map(hd => (
               <button
                 key={hd}
                 onClick={() => setMobileSelectedHd(hd)}
-                className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-xl border-2 transition-all ${
+                className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-wide rounded-xl border-2 transition-all ${
                   mobileSelectedHd === hd
                     ? 'bg-black text-white border-black'
-                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                    : 'bg-white text-gray-500 border-gray-200 active:border-gray-400'
                 }`}
               >
                 {hd}
@@ -1004,12 +1012,12 @@ export default function Agenda() {
 
         <section className="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
           <div className={`grid ${gridColsClass} border-b border-gray-200 bg-gray-50 shrink-0`}>
-            <div className="p-4 flex items-center justify-center border-r border-gray-100">
-              <Clock className="w-5 h-5 text-gray-400" />
+            <div className="p-2 sm:p-4 flex items-center justify-center border-r border-gray-100">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             </div>
             {visibleHairdressers.map(hd => (
-              <div key={hd} className="p-4 text-center font-bold text-gray-800 border-r border-gray-100 last:border-r-0 uppercase tracking-wider text-sm flex justify-center items-center gap-2">
-                <Scissors className="w-4 h-4 text-gray-400" />
+              <div key={hd} className="p-2 sm:p-4 text-center font-bold text-gray-800 border-r border-gray-100 last:border-r-0 uppercase tracking-wider text-xs sm:text-sm flex justify-center items-center gap-1.5 sm:gap-2">
+                <Scissors className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
                 {hd}
               </div>
             ))}
@@ -1032,8 +1040,8 @@ export default function Agenda() {
                     return (
                     <React.Fragment key={time}>
                       <div className={`grid ${gridColsClass} border-b border-gray-100 group/row`} style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
-                        <div className="bg-gray-50 border-r border-gray-100 flex items-center justify-center text-[10px] md:text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.1em]" style={{ height: `${SLOT_HEIGHT}rem` }}>
-                          {time}
+                        <div className="bg-gray-50 border-r border-gray-100 flex items-center justify-center text-[9px] sm:text-[10px] md:text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.05em] sm:tracking-[0.1em]" style={{ height: `${SLOT_HEIGHT}rem` }}>
+                          {isMobile ? time.slice(0, 5) : time}
                         </div>
 
                       {visibleHairdressers.map(hd => {
