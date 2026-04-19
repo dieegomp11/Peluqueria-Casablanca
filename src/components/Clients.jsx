@@ -124,7 +124,7 @@ export default function Clients() {
         }}
       />
       
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 pb-4 pt-14 sm:p-6 lg:p-8 relative z-10 flex flex-col h-full">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 pb-4 pt-14 sm:p-6 lg:p-8 relative z-10 flex flex-col min-h-0">
         {/* Header */}
         <header className="flex flex-col lg:flex-row lg:items-end gap-3 sm:gap-6 lg:gap-8 mb-4 sm:mb-6 border-b-2 border-black pb-3 sm:pb-4 shrink-0">
           <div className="shrink-0">
@@ -160,10 +160,10 @@ export default function Clients() {
         </header>
 
         {/* Content Area */}
-        <section className="flex-1 overflow-y-auto custom-scrollbar relative pr-2 flex flex-col min-h-0">
+        <section className="flex-1 overflow-y-auto custom-scrollbar modal-scroll-container relative pr-1 flex flex-col min-h-0">
           {filteredClients.length > 0 ? (
-            <div className="flex flex-col h-full min-h-0">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pb-8">
+            <div className="flex flex-col min-h-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pb-4">
                 {paginatedClients.map(client => (
                 <article 
                   key={client.id}
@@ -200,7 +200,7 @@ export default function Clients() {
               </div>
               
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-6 mt-auto pb-8 shrink-0">
+                <div className="flex justify-center items-center gap-6 py-4 shrink-0">
                   <button 
                     disabled={currentPage === 1}
                     onClick={() => {
