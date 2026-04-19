@@ -486,6 +486,17 @@ export default function Agenda() {
   const [savingAttendanceId, setSavingAttendanceId] = useState(null);
   const [editingPriceId, setEditingPriceId] = useState(null);
   const [editingPriceValue, setEditingPriceValue] = useState('');
+  const [mobileSelectedHd, setMobileSelectedHd] = useState(hairdressers[0]);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  const visibleHairdressers = isMobile ? [mobileSelectedHd] : hairdressers;
+  const gridColsClass = isMobile ? 'grid-cols-[50px_1fr]' : 'grid-cols-[50px_1fr_1fr_1fr_1fr]';
 
   const handlePriceArrowChange = async (aptId, newValue) => {
     setEditingPriceValue(String(newValue));
@@ -964,6 +975,24 @@ export default function Agenda() {
           </div>
         </header>
 
+        {isMobile && (
+          <div className="flex gap-2 mb-3 shrink-0">
+            {hairdressers.map(hd => (
+              <button
+                key={hd}
+                onClick={() => setMobileSelectedHd(hd)}
+                className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-xl border-2 transition-all ${
+                  mobileSelectedHd === hd
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                {hd}
+              </button>
+            ))}
+          </div>
+        )}
+
         {actionError && (
           <div className="mb-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between gap-4 shrink-0">
             <p className="text-[11px] font-black uppercase tracking-widest text-red-600">⚠ {actionError}</p>
@@ -974,11 +1003,11 @@ export default function Agenda() {
         )}
 
         <section className="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
-          <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-200 bg-gray-50 shrink-0">
+          <div className={`grid ${gridColsClass} border-b border-gray-200 bg-gray-50 shrink-0`}>
             <div className="p-4 flex items-center justify-center border-r border-gray-100">
               <Clock className="w-5 h-5 text-gray-400" />
             </div>
-            {hairdressers.map(hd => (
+            {visibleHairdressers.map(hd => (
               <div key={hd} className="p-4 text-center font-bold text-gray-800 border-r border-gray-100 last:border-r-0 uppercase tracking-wider text-sm flex justify-center items-center gap-2">
                 <Scissors className="w-4 h-4 text-gray-400" />
                 {hd}
@@ -990,7 +1019,7 @@ export default function Agenda() {
             ref={scrollContainerRef}
             className={`overflow-y-auto overflow-x-auto flex-1 pb-10 relative bg-white touch-auto overscroll-contain ${timeSlots.length > 0 ? 'agenda-scroll-container' : ''}`}
           >
-            <div className="block min-w-[500px] lg:min-w-0">
+            <div className="block md:min-w-[500px] lg:min-w-0">
               {loadError ? (
                 <div className="flex flex-col items-center justify-center gap-4 py-20 px-8 text-center">
                   <AlertCircle className="w-12 h-12 text-red-400 opacity-60" />
@@ -1002,12 +1031,12 @@ export default function Agenda() {
                   {timeSlots.map((time, slotIndex) => {
                     return (
                     <React.Fragment key={time}>
-                      <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b border-gray-100 group/row" style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
+                      <div className={`grid ${gridColsClass} border-b border-gray-100 group/row`} style={{ height: `${SLOT_HEIGHT}rem`, overflow: 'visible', zIndex: 100 - slotIndex }}>
                         <div className="bg-gray-50 border-r border-gray-100 flex items-center justify-center text-[10px] md:text-sm font-bold text-gray-400 group-hover/row:text-black transition-colors uppercase tracking-[0.1em]" style={{ height: `${SLOT_HEIGHT}rem` }}>
                           {time}
                         </div>
 
-                      {hairdressers.map(hd => {
+                      {visibleHairdressers.map(hd => {
                         const slotStartMins = timeToMins(time);
                         const nextSlotMins = slotStartMins + 30;
                         const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
@@ -1331,11 +1360,11 @@ export default function Agenda() {
 
                     {/* Siesta / Mid-day Extra Section */}
                     {horarioInfo?.hasTarde && time === minsToTime((horarioInfo.cierreMañ ?? 0) - 30) && (
-                      <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] border-b-2 border-gray-100 bg-amber-50/10 min-h-[5rem] group/siesta">
+                      <div className={`grid ${gridColsClass} border-b-2 border-gray-100 bg-amber-50/10 min-h-[5rem] group/siesta`}>
                         <div className="bg-amber-50/50 border-r border-amber-100 flex flex-col items-center justify-center text-[8px] font-black uppercase text-amber-500 text-center leading-tight">
                           <span className="text-lg font-light">+</span>Extra<br/>Siesta
                         </div>
-                        {hairdressers.map(hd => {
+                        {visibleHairdressers.map(hd => {
                           const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
                           const siestaStartMins = horarioInfo?.cierreMañ ?? (14 * 60);
                           const siestaEndLimit   = horarioInfo?.aperTarde  ?? (17 * 60);
@@ -1491,11 +1520,11 @@ export default function Agenda() {
                 );
               })}
 
-                  <div className="grid grid-cols-[50px_1fr_1fr_1fr_1fr] min-h-[6.5rem] border-t-4 border-double border-gray-200 bg-orange-50/20 group/row">
+                  <div className={`grid ${gridColsClass} min-h-[6.5rem] border-t-4 border-double border-gray-200 bg-orange-50/20 group/row`}>
                     <div className="bg-orange-50/50 border-r border-orange-100 flex flex-col items-center justify-center text-[9px] font-black uppercase text-orange-400">
                       <span className="text-xl font-light">+</span>Fuera<br/>Hora
                     </div>
-                    {hairdressers.map(hd => {
+                    {visibleHairdressers.map(hd => {
                       const hdId = Object.entries(hairdresserMap).find(([k,v]) => v === hd)?.[0];
                       const isExtraPast = currentFormattedDate < strToday;
                       
