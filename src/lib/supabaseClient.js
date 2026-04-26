@@ -1,6 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { PostgrestClient } from '@supabase/postgrest-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const client = new PostgrestClient(url);
+
+export const supabase = {
+  from: (table) => client.from(table),
+};

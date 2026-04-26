@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, LogOut, AlertTriangle, X, Scissors, Menu } from 'lucide-react';
-import { supabase } from './lib/supabaseClient';
+// import { supabase } from './lib/supabaseClient'; // AUTH DESACTIVADO TEMPORALMENTE
 import Agenda from './components/Agenda';
 import Clients from './components/Clients';
 import Services from './components/Services';
 import Dashboard from './components/Dashboard';
-import Login from './components/Login';
+// import Login from './components/Login'; // AUTH DESACTIVADO TEMPORALMENTE
 import logoUrl from './assets/logo.jpeg';
 import { BarChart3 } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agenda');
-  const [session, setSession] = useState(null);
-  const [isRecovering, setIsRecovering] = useState(false);
+  const [session] = useState(true); // AUTH DESACTIVADO TEMPORALMENTE
+  const [isRecovering] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -34,35 +34,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-    });
-
-    // Check for recovery type in URL on load for better responsiveness
-    if (window.location.hash.includes('type=recovery') || window.location.hash.includes('type=invite') || window.location.hash.includes('type=signup')) {
-      setIsRecovering(true);
-    }
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      setSession(newSession);
-      
-      if (import.meta.env.DEV) console.log('Auth Event:', event, !!newSession);
-
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsRecovering(true);
-      }
-      
-      // Only clear recovery mode on explicit user-initiated updates or after a clear setup
-      if (event === 'USER_UPDATED' && !window.location.hash.includes('recovery')) {
-        setIsRecovering(false);
-      }
-
-      if (event === 'SIGNED_OUT') {
-        setIsRecovering(false);
-      }
-    });
+    // AUTH DESACTIVADO TEMPORALMENTE
 
     // Ultimate Scroll Lock: Prevent touchmove on anything except the agenda grid or modal scroll
     const preventDefault = (e) => {
@@ -88,7 +60,6 @@ function App() {
     document.addEventListener('touchmove', preventDefault, { passive: false });
 
     return () => {
-      subscription.unsubscribe();
       document.removeEventListener('touchmove', preventDefault);
     };
   }, []);
@@ -107,7 +78,7 @@ function App() {
   };
 
   const confirmLogout = async () => {
-    await supabase.auth.signOut();
+    // await supabase.auth.signOut(); // AUTH DESACTIVADO TEMPORALMENTE
     setShowLogoutConfirm(false);
   };
 
