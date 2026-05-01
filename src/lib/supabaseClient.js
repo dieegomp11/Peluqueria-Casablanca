@@ -1,7 +1,9 @@
 import { PostgrestClient } from '@supabase/postgrest-js';
 
+const BASE_URL = `${window.location.origin}/api/db`;
+
 const getClient = () =>
-  new PostgrestClient('/api/db', {
+  new PostgrestClient(BASE_URL, {
     headers: {
       'X-Session-Token': localStorage.getItem('casablanca_token') || '',
     },
