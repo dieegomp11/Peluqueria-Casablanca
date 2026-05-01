@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Clock, Phone, User, Scissors, ChevronLeft, ChevronRight, Calendar as CalendarIcon, UserX, X, Check, Trash2, Users, Hourglass, AlertCircle } from 'lucide-react';
+import { Clock, Phone, User, Scissors, ChevronLeft, ChevronRight, Calendar as CalendarIcon, UserX, X, Check, Trash2, Users, Hourglass, AlertCircle, RefreshCw } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import AbsenceModal from './AbsenceModal';
 import NewAppointmentModal from './NewAppointmentModal';
@@ -14,7 +14,7 @@ const formatDate = (date) => {
   return d.toISOString().split('T')[0];
 };
 
-const timeToMins = (t, rawDate) => { 
+const timeToMins = (t, rawDate) => {
   if (rawDate) {
     const d = new Date(rawDate);
     return d.getHours() * 60 + d.getMinutes();
@@ -289,21 +289,14 @@ for (let h = 7; h <= 23; h++) {
   if (h < 23) TIME_OPTIONS.push(`${h.toString().padStart(2,'0')}:30`);
 }
 
-// timetz "HH:MM:SS+00" (UTC) → "HH:MM" en hora local de Madrid
+// timetz "HH:MM:SS+00" → "HH:MM" tal cual, sin conversión
 const timetzToLocal = (t) => {
   if (!t) return '';
-  const [h, m] = t.substring(0, 5).split(':').map(Number);
-  const localMins = h * 60 + m - new Date().getTimezoneOffset();
-  return minsToTime(localMins);
+  return t.substring(0, 5);
 };
 
-// "HH:MM" hora local de Madrid → "HH:MM" UTC para guardar en DB
-const localToUTC = (hhmm) => {
-  if (!hhmm) return null;
-  const [h, m] = hhmm.split(':').map(Number);
-  const utcMins = h * 60 + m + new Date().getTimezoneOffset();
-  return minsToTime(utcMins);
-};
+// Guarda la hora tal cual, sin conversión
+const localToUTC = (hhmm) => hhmm || null;
 
 function HorarioModal({ isOpen, onClose, onSave, horarioData, currentDate }) {
   const existing = horarioData;
@@ -488,6 +481,7 @@ export default function Agenda() {
   const [editingPriceValue, setEditingPriceValue] = useState('');
   const [mobileSelectedHd, setMobileSelectedHd] = useState(hairdressers[0]);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -511,6 +505,7 @@ export default function Agenda() {
 
   const handleAttendance = async (aptId, attended) => {
     setSavingAttendanceId(aptId);
+    setActionError('');
     // 1. Marcar asistencia en la cita
     const { error } = await supabase
       .from('Citas')
@@ -528,16 +523,36 @@ export default function Agenda() {
         a.id === aptId ? { ...a, status: attended ? 'completed' : 'no-show' } : a
       ));
 
-      // 2. Si ha asistido, actualizar la última visita en el cliente correspondiente
+      // 2. Si ha asistido, actualizar última visita y visitasciclo
       if (attended) {
         const apt = appointments.find(a => a.id === aptId);
         if (apt && apt.clientId && apt.rawDate) {
-          // Extraemos solo la parte YYYY-MM-DD para guardarla sin problema
-          const visitDateStr = new Date(apt.rawDate).toISOString().split('T')[0];
-          await supabase
+          const visitDateStr = formatDate(new Date(apt.rawDate));
+
+          const { data: clientData } = await supabase
             .from('Cliente')
-            .update({ ultimaVisita: visitDateStr })
+            .select('visitasciclo')
+            .eq('idCliente', apt.clientId)
+            .single();
+
+          const current = clientData?.visitasciclo || 0;
+          const newVisitasCiclo = current >= 12 ? 0 : current + 1;
+          const isThisBonus = current >= 12;
+
+          if (isThisBonus) {
+            await supabase.from('Citas').update({ esBonus: true }).eq('idCita', aptId);
+            setAppointments(prev => prev.map(a => a.id === aptId ? { ...a, isBonus: true } : a));
+          }
+
+          const { error: clientError } = await supabase
+            .from('Cliente')
+            .update({ ultimaVisita: visitDateStr, visitasciclo: newVisitasCiclo })
             .eq('idCliente', apt.clientId);
+
+          if (clientError) {
+            console.error('[attendance] clientError:', clientError);
+            setActionError('Asistencia registrada pero no se pudo actualizar el cliente.');
+          }
         }
       }
     }
@@ -609,8 +624,8 @@ export default function Agenda() {
     loadAgenda();
   };
 
-  async function loadAgenda() {
-    setLoading(true);
+  async function loadAgenda(silent = false) {
+    if (!silent) setLoading(true);
     setLoadError(null);
     try {
       const dateStr = formatDate(currentDate);
@@ -623,11 +638,11 @@ export default function Agenda() {
       ]);
       setHorarioData(horarioRow || null);
 
-      // timetz llega como "HH:MM:SS+00" (UTC) → convertir a minutos locales del navegador
+      // timetz llega como "HH:MM:SS+00" → minutos tal cual, sin conversión
       const parseHMinsLocal = (t) => {
         if (!t) return null;
         const [h, m] = t.substring(0, 5).split(':').map(Number);
-        return (h * 60 + m) - new Date().getTimezoneOffset();
+        return h * 60 + m;
       };
       const horCierreMañ  = parseHMinsLocal(horarioRow?.horaCierreMañana);
       const horApertTarde = parseHMinsLocal(horarioRow?.horaAperturaTarde);
@@ -693,10 +708,11 @@ export default function Agenda() {
           return {
             id: c.idCita,
             client: c.Cliente?.nombreCliente || 'Sin nombre',
-            clientId: c.cliente,
+            clientId: c.Cliente?.idCliente ?? c.cliente ?? c.idCliente,
             phone: c.Cliente?.telefono || 'Sin teléfono',
             service: svcMap[corteId] || c.tipo_corte || 'Servicio',
             price: c.precio ?? null,
+            corteId: corteId,
             time: timeVal,
             date: dateStr,
             rawDate: c.fechaInicio,
@@ -705,7 +721,8 @@ export default function Agenda() {
             status: c.cancelada ? 'cancelled' : status,
             durationMins: durationMins,
             cancelada: c.cancelada,
-            confirmado: c.confirmado
+            confirmado: c.confirmado,
+            isBonus: c.esBonus ?? false,
           };
         }).filter(a => !a.cancelada);
         setAppointments(mapped);
@@ -769,6 +786,14 @@ export default function Agenda() {
   }, [currentDate]);
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') loadAgenda(true);
+    }, 60000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDate]);
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setIsDateMenuOpen(false);
@@ -781,11 +806,11 @@ export default function Agenda() {
   const currentFormattedDate = formatDate(currentDate);
   const isToday = currentFormattedDate === strToday;
 
-  // Convierte una hora timetz UTC ("HH:MM:SS+00") a minutos locales del navegador
+  // Convierte "HH:MM:SS+00" a minutos tal cual, sin conversión de zona horaria
   const parseTimetzToLocalMins = (t) => {
     if (!t) return null;
     const [h, m] = t.substring(0, 5).split(':').map(Number);
-    return (h * 60 + m) - new Date().getTimezoneOffset();
+    return h * 60 + m;
   };
 
   const horarioInfo = useMemo(() => {
@@ -894,6 +919,21 @@ export default function Agenda() {
                 >
                   <UserX className="w-4 h-4"/>
                   <span className="hidden sm:inline">Ausencia</span>
+                </button>
+
+                {/* Refrescar */}
+                <button
+                  onClick={async () => {
+                    setIsRefreshing(true);
+                    await loadAgenda();
+                    setIsRefreshing(false);
+                  }}
+                  disabled={isRefreshing}
+                  className="p-1.5 sm:px-3 sm:py-1 font-bold text-sm bg-gray-100 text-gray-600 border border-gray-200 rounded-lg transition-all hover:bg-gray-200 flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                  title="Actualizar datos"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}/>
+                  <span className="hidden sm:inline">Actualizar</span>
                 </button>
 
                 {/* Lista de espera */}
@@ -1294,12 +1334,15 @@ export default function Agenda() {
                                                     <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[9px] md:text-[7px] leading-none ml-0.5 select-none">✕</button>
                                                   </div>
                                                 ) : (
-                                                  <button
-                                                    className="text-[9px] md:text-[8px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-1 py-0 rounded border border-emerald-200 shrink-0 transition-colors"
-                                                    onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}
-                                                  >
-                                                    {apt.price != null ? `${apt.price}€` : <span className="text-gray-400 font-normal">+€</span>}
-                                                  </button>
+                                                  <>
+                                                    {apt.isBonus && <span className="text-[8px] font-black text-violet-600 bg-violet-50 border border-violet-200 rounded px-0.5 shrink-0" title="Precio con descuento bonus">%</span>}
+                                                    <button
+                                                      className="text-[9px] md:text-[8px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-1 py-0 rounded border border-emerald-200 shrink-0 transition-colors"
+                                                      onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}
+                                                    >
+                                                      {apt.price != null ? `${apt.price}€` : <span className="text-gray-400 font-normal">+€</span>}
+                                                    </button>
+                                                  </>
                                                 )}
                                                 <div className="flex items-center gap-0.5 text-[9px] md:text-[8px] text-gray-400 font-bold">
                                                   <Phone className="w-2.5 h-2.5 md:w-2 md:h-2" />
@@ -1325,12 +1368,15 @@ export default function Agenda() {
                                                   <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-xs ml-0.5 select-none">✕</button>
                                                 </div>
                                               ) : (
-                                                <button
-                                                  className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 md:py-1 rounded-lg border border-emerald-200 transition-colors"
-                                                  onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}
-                                                >
-                                                  {apt.price != null ? `${apt.price}€` : <span className="text-gray-400 font-normal">+ precio</span>}
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                  {apt.isBonus && <span className="text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-200 rounded px-1 shrink-0" title="Precio con descuento bonus">%</span>}
+                                                  <button
+                                                    className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 md:py-1 rounded-lg border border-emerald-200 transition-colors"
+                                                    onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}
+                                                  >
+                                                    {apt.price != null ? `${apt.price}€` : <span className="text-gray-400 font-normal">+ precio</span>}
+                                                  </button>
+                                                </div>
                                               )}
                                             </div>
                                             <div className="flex items-center justify-between gap-1 mt-auto pt-1 border-t border-gray-50 overflow-hidden shrink-0">
@@ -1502,9 +1548,12 @@ export default function Agenda() {
                                                 <button onClick={(e) => { e.stopPropagation(); setEditingPriceId(null); }} className="text-gray-400 hover:text-gray-600 text-[9px] md:text-[6px] leading-none ml-0.5 select-none">✕</button>
                                               </div>
                                             ) : (
-                                              <button className="text-[9px] md:text-[6px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0 rounded border border-emerald-200" onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}>
-                                                {apt.price != null ? `${apt.price}€` : '+€'}
-                                              </button>
+                                              <>
+                                                {apt.isBonus && <span className="text-[8px] font-black text-violet-600 bg-violet-50 border border-violet-200 rounded px-0.5 shrink-0" title="Precio con descuento bonus">%</span>}
+                                                <button className="text-[9px] md:text-[6px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0 rounded border border-emerald-200" onClick={(e) => { e.stopPropagation(); setEditingPriceId(apt.id); setEditingPriceValue(apt.price != null ? String(apt.price) : '0'); }}>
+                                                  {apt.price != null ? `${apt.price}€` : '+€'}
+                                                </button>
+                                              </>
                                             ))}
                                             <div className={`flex items-center gap-0.5 ${apt.durationMins <= 15 ? 'text-[9px] md:text-[7px]' : 'text-[10px] md:text-[8px]'} text-gray-400 font-bold`}>
                                               <Phone className={`${apt.durationMins <= 15 ? 'w-2 h-2 md:w-1.5 md:h-1.5' : 'w-2.5 h-2.5 md:w-2 md:h-2'}`} />

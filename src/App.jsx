@@ -5,14 +5,16 @@ import Agenda from './components/Agenda';
 import Clients from './components/Clients';
 import Services from './components/Services';
 import Dashboard from './components/Dashboard';
-// import Login from './components/Login'; // AUTH DESACTIVADO TEMPORALMENTE
+import Login from './components/Login';
 import logoUrl from './assets/logo.jpeg';
 import { BarChart3 } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agenda');
-  const [session] = useState(true); // AUTH DESACTIVADO TEMPORALMENTE
+  const [session, setSession] = useState(() => localStorage.getItem('casablanca_auth') === 'true');
+  const [currentUser, setCurrentUser] = useState(() => localStorage.getItem('casablanca_user') || '');
   const [isRecovering] = useState(false);
+  const isAdmin = currentUser === 'admin@casablanca.com';
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -77,8 +79,11 @@ function App() {
     setShowLogoutConfirm(true);
   };
 
-  const confirmLogout = async () => {
-    // await supabase.auth.signOut(); // AUTH DESACTIVADO TEMPORALMENTE
+  const confirmLogout = () => {
+    localStorage.removeItem('casablanca_auth');
+    localStorage.removeItem('casablanca_user');
+    setCurrentUser('');
+    setSession(false);
     setShowLogoutConfirm(false);
   };
 
@@ -88,7 +93,7 @@ function App() {
   }
 
   if (!session) {
-    return <Login session={session} isRecoveryMode={false} />;
+    return <Login onLogin={(email) => { setCurrentUser(email); setSession(true); }} />;
   }
 
   return (
@@ -145,21 +150,25 @@ function App() {
             <span className="text-sm sm:text-[10px] font-bold uppercase tracking-wider">Clientes</span>
           </button>
 
-          <button
-            onClick={() => handleTabChange('services')}
-            className={`w-full py-3 sm:aspect-square rounded-2xl flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 sm:gap-1.5 px-4 sm:px-0 transition-all duration-300 ${activeTab === 'services' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-          >
-            <Scissors className="w-6 h-6 shrink-0" />
-            <span className="text-sm sm:text-[10px] font-bold uppercase tracking-wider">Servicios</span>
-          </button>
+          {!isAdmin && (
+            <button
+              onClick={() => handleTabChange('services')}
+              className={`w-full py-3 sm:aspect-square rounded-2xl flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 sm:gap-1.5 px-4 sm:px-0 transition-all duration-300 ${activeTab === 'services' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+            >
+              <Scissors className="w-6 h-6 shrink-0" />
+              <span className="text-sm sm:text-[10px] font-bold uppercase tracking-wider">Servicios</span>
+            </button>
+          )}
 
-          <button
-            onClick={() => handleTabChange('dashboard')}
-            className={`w-full py-3 sm:aspect-square rounded-2xl flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 sm:gap-1.5 px-4 sm:px-0 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-          >
-            <BarChart3 className="w-6 h-6 shrink-0" />
-            <span className="text-sm sm:text-[10px] font-bold uppercase tracking-wider">KPIs</span>
-          </button>
+          {!isAdmin && (
+            <button
+              onClick={() => handleTabChange('dashboard')}
+              className={`w-full py-3 sm:aspect-square rounded-2xl flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 sm:gap-1.5 px-4 sm:px-0 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+            >
+              <BarChart3 className="w-6 h-6 shrink-0" />
+              <span className="text-sm sm:text-[10px] font-bold uppercase tracking-wider">KPIs</span>
+            </button>
+          )}
         </div>
 
         <div className="mt-auto w-full px-4 pt-10">

@@ -15,6 +15,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
   const [isAddingNewClient, setIsAddingNewClient] = useState(false);
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
+  const [newClientPhonePrefix, setNewClientPhonePrefix] = useState('34');
   const [creatingClient, setCreatingClient] = useState(false);
   const [error, setError] = useState('');
   const searchRef = useRef(null);
@@ -82,6 +83,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
       setIsAddingNewClient(false);
       setNewClientName('');
       setNewClientPhone('');
+      setNewClientPhonePrefix('34');
       setError('');
     }
   }, [isOpen, slotTime]);
@@ -161,7 +163,8 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     if (!newClientName) { setError('El nombre es obligatorio.'); return; }
     if (!newClientPhone) { setError('El teléfono es obligatorio.'); return; }
     setCreatingClient(true);
-    const { data, error: createError } = await supabase.from('Cliente').insert({ nombreCliente: newClientName, telefono: newClientPhone }).select().single();
+    const telefonoFinal = newClientPhonePrefix + newClientPhone.replace(/\D/g, '');
+    const { data, error: createError } = await supabase.from('Cliente').insert({ nombreCliente: newClientName, telefono: telefonoFinal }).select().single();
     setCreatingClient(false);
     if (createError) { setError('No se pudo registrar el cliente. Inténtalo de nuevo.'); return; }
     if (data) { setSelectedClient(data); setIsAddingNewClient(false); }
@@ -297,16 +300,32 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
                   maxLength={100}
                   className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
                 />
-                <input
-                  type="text"
-                  placeholder="Teléfono"
-                  value={newClientPhone}
-                  onChange={e => setNewClientPhone(e.target.value)}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  maxLength={20}
-                  className="bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
-                />
+                <div className="relative w-full">
+                  <select
+                    value={newClientPhonePrefix}
+                    onChange={e => setNewClientPhonePrefix(e.target.value)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-transparent text-sm font-bold outline-none text-gray-500 cursor-pointer z-10"
+                  >
+                    <option value="34">🇪🇸 +34</option>
+                    <option value="212">🇲🇦 +212</option>
+                    <option value="44">🇬🇧 +44</option>
+                    <option value="33">🇫🇷 +33</option>
+                    <option value="351">🇵🇹 +351</option>
+                    <option value="40">🇷🇴 +40</option>
+                    <option value="39">🇮🇹 +39</option>
+                    <option value="49">🇩🇪 +49</option>
+                  </select>
+                  <input
+                    type="tel"
+                    placeholder="Teléfono"
+                    value={newClientPhone}
+                    onChange={e => setNewClientPhone(e.target.value.replace(/\D/g, ''))}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    maxLength={12}
+                    className="w-full bg-white rounded-xl pl-24 pr-4 py-3 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all"
+                  />
+                </div>
                 <div className="flex gap-2">
                    <button onClick={handleCreateClient} disabled={creatingClient} className="flex-1 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl disabled:opacity-60">{creatingClient ? 'Creando...' : 'Crear'}</button>
                    <button onClick={() => setIsAddingNewClient(false)} className="px-4 py-4 bg-gray-200 text-gray-600 rounded-xl hover:bg-gray-300 transition-colors flex items-center justify-center"><X className="w-4 h-4" /></button>
