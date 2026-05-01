@@ -11,7 +11,7 @@ import { BarChart3 } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agenda');
-  const [session, setSession] = useState(() => localStorage.getItem('casablanca_auth') === 'true');
+  const [session, setSession] = useState(() => !!localStorage.getItem('casablanca_token'));
   const [currentUser, setCurrentUser] = useState(() => localStorage.getItem('casablanca_user') || '');
   const [isRecovering] = useState(false);
   const isAdmin = currentUser === 'admin@casablanca.com';
@@ -80,7 +80,7 @@ function App() {
   };
 
   const confirmLogout = () => {
-    localStorage.removeItem('casablanca_auth');
+    localStorage.removeItem('casablanca_token');
     localStorage.removeItem('casablanca_user');
     setCurrentUser('');
     setSession(false);

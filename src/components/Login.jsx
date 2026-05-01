@@ -48,7 +48,7 @@ const Login = ({ onLogin }) => {
     };
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (lockUntil && Date.now() < lockUntil) {
@@ -59,24 +59,33 @@ const Login = ({ onLogin }) => {
     setLoading(true);
     setError('');
 
-    const users = JSON.parse(import.meta.env.VITE_APP_USERS || '[]');
-    const match = users.find(u => u.email === email && u.password === password);
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
 
-    if (match) {
-      localStorage.setItem('casablanca_auth', 'true');
-      localStorage.setItem('casablanca_user', match.email);
-      onLogin(match.email);
-    } else {
-      const newAttempts = loginAttempts + 1;
-      setLoginAttempts(newAttempts);
-      if (newAttempts >= MAX_ATTEMPTS) {
-        const until = Date.now() + LOCKOUT_MS;
-        setLockUntil(until);
-        setLockCountdown(Math.ceil(LOCKOUT_MS / 1000));
-        setError('Demasiados intentos fallidos. Espera 60s.');
+      if (res.ok) {
+        localStorage.setItem('casablanca_token', data.token);
+        localStorage.setItem('casablanca_user', data.email);
+        onLogin(data.email);
       } else {
-        setError(`Acceso denegado. Verifica tu email y contraseña. (${newAttempts}/${MAX_ATTEMPTS})`);
+        const newAttempts = loginAttempts + 1;
+        setLoginAttempts(newAttempts);
+        if (newAttempts >= MAX_ATTEMPTS) {
+          const until = Date.now() + LOCKOUT_MS;
+          setLockUntil(until);
+          setLockCountdown(Math.ceil(LOCKOUT_MS / 1000));
+          setError('Demasiados intentos fallidos. Espera 60s.');
+        } else {
+          setError(`Acceso denegado. Verifica tu email y contraseña. (${newAttempts}/${MAX_ATTEMPTS})`);
+        }
+        setLoading(false);
       }
+    } catch {
+      setError('Error de conexión. Inténtalo de nuevo.');
       setLoading(false);
     }
   };
