@@ -38,5 +38,8 @@ export default function handler(req, res) {
     }
   }
 
+  info.reqUrl = req.url;
+  info.reqQuery = req.query;
+
   res.status(200).json(info);
 }
