@@ -31,13 +31,11 @@ export default async function handler(req, res) {
     return res.status(401).json({ code: 'UNAUTHORIZED', message: 'No autorizado', debug: result });
   }
 
-  // Use req.query.path for the table name. Strip the injected ...path param from
-  // the raw query string before forwarding to PostgREST.
-  const { path: pathParts } = req.query;
-  const tablePath = (Array.isArray(pathParts) ? pathParts : [pathParts])
-    .filter(Boolean)
-    .map(encodeURIComponent)
-    .join('/');
+  // Vercel injects the catch-all segments as req.query['...path'] (with dots).
+  // Strip it from the raw query string before forwarding to PostgREST.
+  const pathParam = req.query['...path'] ?? req.query.path;
+  const pathParts = (Array.isArray(pathParam) ? pathParam : [pathParam]).filter(Boolean);
+  const tablePath = pathParts.map(encodeURIComponent).join('/');
   const rawQs = (req.url || '').split('?')[1] || '';
   const qs = rawQs
     .split('&')
