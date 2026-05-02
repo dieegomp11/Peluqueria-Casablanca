@@ -1,9 +1,10 @@
 import crypto from 'node:crypto';
 
 function verifyToken(token) {
-  if (!token || !process.env.SESSION_SECRET) return null;
+  if (!token) return { error: 'no_token' };
+  if (!process.env.SESSION_SECRET) return { error: 'no_secret' };
   const dot = token.lastIndexOf('.');
-  if (dot === -1) return null;
+  if (dot === -1) return { error: 'no_dot' };
   const payload = token.slice(0, dot);
   const sig = token.slice(dot + 1);
   const expected = crypto
@@ -13,20 +14,21 @@ function verifyToken(token) {
   try {
     const sigBuf = Buffer.from(sig, 'base64url');
     const expBuf = Buffer.from(expected, 'base64url');
-    if (sigBuf.length !== expBuf.length) return null;
-    if (!crypto.timingSafeEqual(sigBuf, expBuf)) return null;
-  } catch {
-    return null;
+    if (sigBuf.length !== expBuf.length) return { error: 'length_mismatch', sigLen: sigBuf.length, expLen: expBuf.length };
+    if (!crypto.timingSafeEqual(sigBuf, expBuf)) return { error: 'sig_mismatch' };
+  } catch (e) {
+    return { error: 'exception', detail: e.message };
   }
   const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
-  if (data.exp < Date.now()) return null;
-  return data;
+  if (data.exp < Date.now()) return { error: 'expired' };
+  return { ok: true, data };
 }
 
 export default async function handler(req, res) {
   const token = req.headers['x-session-token'];
-  if (!verifyToken(token)) {
-    return res.status(401).json({ code: 'UNAUTHORIZED', message: 'No autorizado' });
+  const result = verifyToken(token);
+  if (!result.ok) {
+    return res.status(401).json({ code: 'UNAUTHORIZED', message: 'No autorizado', debug: result });
   }
 
   // Use req.query.path for the table name (Vercel parses it correctly from the dynamic route)
