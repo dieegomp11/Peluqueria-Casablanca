@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import bcrypt from 'bcryptjs';
 
 function createToken(email) {
   const payload = Buffer.from(
@@ -11,7 +12,7 @@ function createToken(email) {
   return `${payload}.${sig}`;
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { email, password } = req.body || {};
@@ -19,9 +20,10 @@ export default function handler(req, res) {
     return res.status(400).json({ error: 'Email y contraseña requeridos' });
 
   const users = JSON.parse(process.env.APP_USERS || '[]');
-  const user = users.find(u => u.email === email && u.password === password);
+  const user = users.find(u => u.email === email);
 
-  if (!user) return res.status(401).json({ error: 'Credenciales incorrectas' });
+  if (!user || !(await bcrypt.compare(password, user.passwordHash)))
+    return res.status(401).json({ error: 'Credenciales incorrectas' });
 
   res.status(200).json({ token: createToken(email), email });
 }

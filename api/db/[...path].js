@@ -1,5 +1,32 @@
 import crypto from 'node:crypto';
 
+// PostgREST operators the app actually uses.
+const SAFE_STANDARD = /^(select|order|limit|offset|on_conflict|columns)=/;
+const SAFE_COLUMN_FILTER = /^[^=]+=(?:not\.)?(?:eq|neq|gt|gte|lt|lte|is|in|like|ilike)\./;
+// Block top-level logical combinators (or=, and=, not.or=, not.and=).
+const BLOCKED = /^(?:or|and|not\.or|not\.and)=/i;
+const MAX_LIMIT = 500;
+
+function filterQueryParams(rawQs) {
+  return rawQs
+    .split('&')
+    .filter(p => {
+      if (!p || p.startsWith('...path') || p.startsWith('%2E%2E%2Epath')) return false;
+      if (BLOCKED.test(p)) return false;
+      if (SAFE_STANDARD.test(p)) return true;
+      if (SAFE_COLUMN_FILTER.test(p)) return true;
+      return false;
+    })
+    .map(p => {
+      if (p.startsWith('limit=')) {
+        const val = parseInt(p.slice(6), 10);
+        if (!isNaN(val) && val > MAX_LIMIT) return `limit=${MAX_LIMIT}`;
+      }
+      return p;
+    })
+    .join('&');
+}
+
 function verifyToken(token) {
   if (!token || !process.env.SESSION_SECRET) return null;
   const dot = token.lastIndexOf('.');
@@ -36,10 +63,7 @@ export default async function handler(req, res) {
   const pathParts = (Array.isArray(pathParam) ? pathParam : [pathParam]).filter(Boolean);
   const tablePath = pathParts.map(encodeURIComponent).join('/');
   const rawQs = (req.url || '').split('?')[1] || '';
-  const qs = rawQs
-    .split('&')
-    .filter(p => p && !p.startsWith('...path') && !p.startsWith('%2E%2E%2Epath'))
-    .join('&');
+  const qs = filterQueryParams(rawQs);
   const suffix = '/' + tablePath + (qs ? '?' + qs : '');
   const url = `${process.env.POSTGREST_URL}${suffix}`;
 

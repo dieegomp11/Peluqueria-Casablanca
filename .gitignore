@@ -3,3 +3,23 @@ dist
 .env
 .DS_Store
 *.local
+
+# debug / test / dump scripts
+dump*.js
+dump*.json
+debug_*.js
+debug_*.json
+test_*.js
+check_*.js
+check_*.mjs
+get_creds.mjs
+inspect_*.mjs
+manual_*.mjs
+update_*.mjs
+verify_*.mjs
+*_dump*.json
+*schema*.json
+tmp/
+tmp_*.json
+err.txt
+openapi.json
