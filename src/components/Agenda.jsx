@@ -883,7 +883,7 @@ export default function Agenda() {
       />
       
       <main className="flex-1 w-full px-2 sm:pl-8 sm:pr-8 pt-2 sm:pt-4 pb-0 relative z-10 flex flex-col h-full min-h-0 overflow-hidden max-w-full">
-        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-2 sm:mb-6 border-b-2 border-black pb-2 sm:pb-4 shrink-0 gap-2">
+        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-2 sm:mb-6 border-b-2 border-black pb-2 sm:pb-4 shrink-0 gap-2 pl-12 sm:pl-0">
           {/* Título — solo tablet+ */}
           <div className="hidden sm:block">
             <h1 className="text-5xl font-bold tracking-normal leading-none mb-1" style={{ fontFamily: "'Aref Ruqaa', serif" }}>
@@ -933,7 +933,6 @@ export default function Agenda() {
                   title="Actualizar datos"
                 >
                   <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}/>
-                  <span className="hidden sm:inline">Actualizar</span>
                 </button>
 
                 {/* Lista de espera */}
@@ -976,17 +975,16 @@ export default function Agenda() {
                   ) : null;
                 })()}
 
-                {!isToday && (
-                  <button
-                    onClick={() => setCurrentDate(today)}
-                    className="px-2 py-1 text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    Hoy
-                  </button>
-                )}
-
                 {/* Navegación de fecha */}
                 <div className="flex items-center gap-0.5 sm:gap-1 bg-white border border-gray-200 rounded-lg p-0.5 sm:p-1 shadow-sm">
+                  {!isToday && (
+                    <button
+                      onClick={() => setCurrentDate(today)}
+                      className="px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                    >
+                      Hoy
+                    </button>
+                  )}
                   <button onClick={handlePrevDay} className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="Día anterior">
                     <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5"/>
                   </button>

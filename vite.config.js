@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import crypto from 'node:crypto'
 import bcrypt from 'bcryptjs'
+import fs from 'node:fs'
 
 function createToken(email, secret) {
   const payload = Buffer.from(
@@ -47,7 +48,7 @@ export default defineConfig(({ mode }) => {
             req.on('end', async () => {
               try {
                 const { email, password } = JSON.parse(body);
-                const users = JSON.parse(env.APP_USERS || '[]');
+                const users = JSON.parse(fs.readFileSync(new URL('./users.local.json', import.meta.url), 'utf8'));
                 const user = users.find(u => u.email === email);
                 res.setHeader('Content-Type', 'application/json');
                 if (user && await bcrypt.compare(password, user.passwordHash)) {
