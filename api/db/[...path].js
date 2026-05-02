@@ -29,11 +29,11 @@ export default async function handler(req, res) {
     return res.status(401).json({ code: 'UNAUTHORIZED', message: 'No autorizado' });
   }
 
-  const path = Array.isArray(req.query.path)
-    ? req.query.path.join('/')
-    : (req.query.path || '');
-  const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
-  const url = `${process.env.POSTGREST_URL}/${path}${qs}`;
+  // Use req.url directly to avoid Vercel injecting [...path] route params into the query.
+  // req.url is the raw incoming URL, e.g. '/api/db/Citas?select=*,Cliente(*)'
+  // Strip the '/api/db' prefix to get the PostgREST path + query string.
+  const suffix = (req.url || '/').replace(/^\/api\/db/, '') || '/';
+  const url = `${process.env.POSTGREST_URL}${suffix}`;
 
   const headers = {
     Authorization: `Bearer ${process.env.POSTGREST_TOKEN}`,
