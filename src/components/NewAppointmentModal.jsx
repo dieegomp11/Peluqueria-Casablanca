@@ -94,23 +94,7 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
     }
   }, [selectedCut, startTime]);
 
-  // Auto-adjust start time when service changes: always end right at next appointment's start
-  useEffect(() => {
-    if (!selectedCut || !isOpen) return;
-    const duration = selectedCut.duracionCorteMins || 30;
-    const slotMins = timeToMins(slotTime || '10:00');
-    const relevant = (appointments || []).filter(a => a.date === slotDate && a.hairdresser === hairdresser);
-    const next = relevant
-      .filter(a => timeToMins(a.time) > slotMins)
-      .sort((a, b) => timeToMins(a.time) - timeToMins(b.time))[0];
-    const nextMins = next ? timeToMins(next.time) : null;
-    if (nextMins !== null) {
-      // Place appointment as late as possible so it ends exactly at next appointment's start.
-      // If duration is too long for the gap, start at slotMins (conflict warning will show).
-      const ideal = Math.floor((nextMins - duration) / 5) * 5;
-      setStartTime(minsToTimeStr(Math.max(slotMins, ideal)));
-    }
-  }, [selectedCut]);
+
 
   useEffect(() => {
     const timer = setTimeout(async () => {
