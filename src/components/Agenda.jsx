@@ -612,9 +612,10 @@ export default function Agenda() {
 
   const handleSaveHorario = async (payload) => {
     const dateStr = formatDate(currentDate);
-    // Si ya existe el registro, update; si no, insert
     if (horarioData) {
-      const { error } = await supabase.from('Horario').update(payload).eq('idDia', horarioData.idDia);
+      // Filtra por `dia` (fecha única por día) en lugar de idDia para evitar fallos silenciosos
+      // cuando el nombre de la columna PK difiere del esperado
+      const { error } = await supabase.from('Horario').update(payload).eq('dia', dateStr);
       if (error) throw error;
     } else {
       const { error } = await supabase.from('Horario').insert([{ dia: dateStr, ...payload }]);
