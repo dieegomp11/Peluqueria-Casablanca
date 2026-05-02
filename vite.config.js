@@ -1,5 +1,35 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import crypto from 'node:crypto'
+import bcrypt from 'bcryptjs'
+
+function createToken(email, secret) {
+  const payload = Buffer.from(
+    JSON.stringify({ email, exp: Date.now() + 86400000 })
+  ).toString('base64url');
+  const sig = crypto.createHmac('sha256', secret).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+
+function verifyToken(token, secret) {
+  if (!token || !secret) return null;
+  const dot = token.lastIndexOf('.');
+  if (dot === -1) return null;
+  const payload = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  const expected = crypto.createHmac('sha256', secret).update(payload).digest('base64url');
+  try {
+    const sigBuf = Buffer.from(sig, 'base64url');
+    const expBuf = Buffer.from(expected, 'base64url');
+    if (sigBuf.length !== expBuf.length) return null;
+    if (!crypto.timingSafeEqual(sigBuf, expBuf)) return null;
+  } catch {
+    return null;
+  }
+  const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
+  if (data.exp < Date.now()) return null;
+  return data;
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -8,21 +38,20 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       {
-        name: 'dev-login-api',
+        name: 'dev-api',
         configureServer(server) {
           server.middlewares.use('/api/login', (req, res) => {
             if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
             let body = '';
             req.on('data', chunk => body += chunk.toString());
-            req.on('end', () => {
+            req.on('end', async () => {
               try {
                 const { email, password } = JSON.parse(body);
                 const users = JSON.parse(env.APP_USERS || '[]');
-                const user = users.find(u => u.email === email && u.password === password);
+                const user = users.find(u => u.email === email);
                 res.setHeader('Content-Type', 'application/json');
-                if (user) {
-                  const token = 'dev-' + Buffer.from(email).toString('base64url');
-                  res.end(JSON.stringify({ token, email }));
+                if (user && await bcrypt.compare(password, user.passwordHash)) {
+                  res.end(JSON.stringify({ token: createToken(email, env.SESSION_SECRET), email }));
                 } else {
                   res.statusCode = 401;
                   res.end(JSON.stringify({ error: 'Credenciales incorrectas' }));
@@ -32,6 +61,16 @@ export default defineConfig(({ mode }) => {
                 res.end(JSON.stringify({ error: 'Bad request' }));
               }
             });
+          });
+
+          server.middlewares.use('/api/db', (req, res, next) => {
+            if (!verifyToken(req.headers['x-session-token'], env.SESSION_SECRET)) {
+              res.statusCode = 401;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ code: 'UNAUTHORIZED', message: 'No autorizado' }));
+              return;
+            }
+            next();
           });
         },
       },
