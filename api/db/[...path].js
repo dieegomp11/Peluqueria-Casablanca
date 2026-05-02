@@ -1,10 +1,9 @@
 import crypto from 'node:crypto';
 
 function verifyToken(token) {
-  if (!token) return { error: 'no_token' };
-  if (!process.env.SESSION_SECRET) return { error: 'no_secret' };
+  if (!token || !process.env.SESSION_SECRET) return null;
   const dot = token.lastIndexOf('.');
-  if (dot === -1) return { error: 'no_dot' };
+  if (dot === -1) return null;
   const payload = token.slice(0, dot);
   const sig = token.slice(dot + 1);
   const expected = crypto
@@ -14,25 +13,25 @@ function verifyToken(token) {
   try {
     const sigBuf = Buffer.from(sig, 'base64url');
     const expBuf = Buffer.from(expected, 'base64url');
-    if (sigBuf.length !== expBuf.length) return { error: 'length_mismatch', sigLen: sigBuf.length, expLen: expBuf.length };
-    if (!crypto.timingSafeEqual(sigBuf, expBuf)) return { error: 'sig_mismatch' };
-  } catch (e) {
-    return { error: 'exception', detail: e.message };
+    if (sigBuf.length !== expBuf.length) return null;
+    if (!crypto.timingSafeEqual(sigBuf, expBuf)) return null;
+  } catch {
+    return null;
   }
   const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
-  if (data.exp < Date.now()) return { error: 'expired' };
-  return { ok: true, data };
+  if (data.exp < Date.now()) return null;
+  return data;
 }
 
 export default async function handler(req, res) {
   const token = req.headers['x-session-token'];
-  const result = verifyToken(token);
-  if (!result.ok) {
-    return res.status(401).json({ code: 'UNAUTHORIZED', message: 'No autorizado', debug: result });
+  if (!verifyToken(token)) {
+    return res.status(401).json({ code: 'UNAUTHORIZED', message: 'No autorizado' });
   }
 
-  // Vercel injects the catch-all segments as req.query['...path'] (with dots).
-  // Strip it from the raw query string before forwarding to PostgREST.
+  // Vercel injects catch-all segments as req.query['...path'] (with dots).
+  // Extract table name from there and strip it from the raw query string
+  // before forwarding to PostgREST.
   const pathParam = req.query['...path'] ?? req.query.path;
   const pathParts = (Array.isArray(pathParam) ? pathParam : [pathParam]).filter(Boolean);
   const tablePath = pathParts.map(encodeURIComponent).join('/');
