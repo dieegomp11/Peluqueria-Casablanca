@@ -31,14 +31,18 @@ export default async function handler(req, res) {
     return res.status(401).json({ code: 'UNAUTHORIZED', message: 'No autorizado', debug: result });
   }
 
-  // Use req.query.path for the table name (Vercel parses it correctly from the dynamic route)
-  // and extract the raw query string from req.url to preserve encoding for PostgREST.
+  // Use req.query.path for the table name. Strip the injected ...path param from
+  // the raw query string before forwarding to PostgREST.
   const { path: pathParts } = req.query;
   const tablePath = (Array.isArray(pathParts) ? pathParts : [pathParts])
     .filter(Boolean)
     .map(encodeURIComponent)
     .join('/');
-  const qs = (req.url || '').split('?')[1] || '';
+  const rawQs = (req.url || '').split('?')[1] || '';
+  const qs = rawQs
+    .split('&')
+    .filter(p => p && !p.startsWith('...path') && !p.startsWith('%2E%2E%2Epath'))
+    .join('&');
   const suffix = '/' + tablePath + (qs ? '?' + qs : '');
   const url = `${process.env.POSTGREST_URL}${suffix}`;
 
