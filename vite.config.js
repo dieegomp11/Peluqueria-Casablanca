@@ -64,6 +64,24 @@ export default defineConfig(({ mode }) => {
             });
           });
 
+          server.middlewares.use('/api/notify-cancel', (req, res) => {
+            if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
+            let body = '';
+            req.on('data', chunk => body += chunk.toString());
+            req.on('end', async () => {
+              try {
+                const data = JSON.parse(body);
+                await fetch('https://barberiacasablanca-n8n.nrmm0x.easypanel.host/webhook/3455a5b6-fe8f-407a-83c1-cd602686c88f', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(data),
+                });
+              } catch { /* fire-and-forget */ }
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ ok: true }));
+            });
+          });
+
           server.middlewares.use('/api/db', (req, res, next) => {
             if (!verifyToken(req.headers['x-session-token'], env.SESSION_SECRET)) {
               res.statusCode = 401;

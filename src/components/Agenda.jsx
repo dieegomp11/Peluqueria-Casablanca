@@ -561,6 +561,12 @@ export default function Agenda() {
   };
 
   const handleCancel = async (aptId) => {
+    const { data: citaData } = await supabase
+      .from('Citas')
+      .select('fechaInicio, Cliente(nombreCliente, telefono)')
+      .eq('idCita', aptId)
+      .single();
+
     const { error } = await supabase
       .from('Citas')
       .update({ cancelada: true })
@@ -571,6 +577,19 @@ export default function Agenda() {
       setConfirmCancelId(null);
       return;
     }
+
+    if (citaData) {
+      fetch('/api/notify-cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: citaData.Cliente?.nombreCliente,
+          telefono: citaData.Cliente?.telefono,
+          fechaInicio: citaData.fechaInicio,
+        }),
+      }).catch(() => {});
+    }
+
     setAppointments(prev => prev.filter(a => a.id !== aptId));
     setConfirmCancelId(null);
   };
