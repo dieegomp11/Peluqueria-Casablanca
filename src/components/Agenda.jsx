@@ -563,7 +563,7 @@ export default function Agenda() {
   const handleCancel = async (aptId) => {
     const { data: citaData } = await supabase
       .from('Citas')
-      .select('fechaInicio, Cliente(nombreCliente, telefono)')
+      .select('fechaInicio, peluquero, Cliente(nombreCliente, telefono)')
       .eq('idCita', aptId)
       .single();
 
@@ -586,6 +586,7 @@ export default function Agenda() {
           nombre: citaData.Cliente?.nombreCliente,
           telefono: citaData.Cliente?.telefono,
           fechaInicio: citaData.fechaInicio,
+          peluquero: hairdresserMap[citaData.peluquero] ?? null,
         }),
       }).catch(() => {});
     }

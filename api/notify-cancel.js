@@ -3,7 +3,7 @@ const WEBHOOK_URL = 'https://barberiacasablanca-n8n.nrmm0x.easypanel.host/webhoo
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { nombre, telefono, fechaInicio } = req.body || {};
+  const { nombre, telefono, fechaInicio, peluquero } = req.body || {};
 
   let fechaFormateada = null;
   if (fechaInicio) {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, telefono, fechaFormateada }),
+      body: JSON.stringify({ nombre, telefono, peluquero, fechaFormateada }),
     });
   } catch {
     // fire-and-forget: no bloqueamos si n8n falla
