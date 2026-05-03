@@ -5,19 +5,21 @@ export default async function handler(req, res) {
 
   const { nombre, telefono, fechaInicio } = req.body || {};
 
-  const fechaMadrid = fechaInicio
-    ? new Intl.DateTimeFormat('es-ES', {
-        timeZone: 'Europe/Madrid',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit',
-      }).format(new Date(fechaInicio))
-    : null;
+  let fechaFormateada = null;
+  if (fechaInicio) {
+    const date = new Date(fechaInicio);
+    const tz = 'Europe/Madrid';
+    const dia = new Intl.DateTimeFormat('es-ES', { timeZone: tz, day: 'numeric' }).format(date);
+    const mes = new Intl.DateTimeFormat('es-ES', { timeZone: tz, month: 'long' }).format(date);
+    const hora = new Intl.DateTimeFormat('es-ES', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+    fechaFormateada = `${dia} de ${mes} a las ${hora}h`;
+  }
 
   try {
     await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, telefono, fechaInicio: fechaMadrid }),
+      body: JSON.stringify({ nombre, telefono, fechaFormateada }),
     });
   } catch {
     // fire-and-forget: no bloqueamos si n8n falla
