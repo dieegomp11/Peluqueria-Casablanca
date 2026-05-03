@@ -64,7 +64,7 @@ export default defineConfig(({ mode }) => {
             });
           });
 
-          server.middlewares.use('/api/notify-cancel', (req, res) => {
+          const makeNotifyMiddleware = (webhookEnvKey) => (req, res) => {
             if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
             let body = '';
             req.on('data', chunk => body += chunk.toString());
@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
                   const hora = new Intl.DateTimeFormat('es-ES', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
                   fechaFormateada = `${dia} de ${mes} a las ${hora}h`;
                 }
-                await fetch('https://barberiacasablanca-n8n.nrmm0x.easypanel.host/webhook/3455a5b6-fe8f-407a-83c1-cd602686c88f', {
+                await fetch(env[webhookEnvKey], {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ nombre, telefono, peluquero, fechaFormateada }),
@@ -89,7 +89,10 @@ export default defineConfig(({ mode }) => {
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ ok: true }));
             });
-          });
+          };
+
+          server.middlewares.use('/api/notify-cancel', makeNotifyMiddleware('WEBHOOK_CANCEL_URL'));
+          server.middlewares.use('/api/notify-confirm', makeNotifyMiddleware('WEBHOOK_CONFIRM_URL'));
 
           server.middlewares.use('/api/db', (req, res, next) => {
             if (!verifyToken(req.headers['x-session-token'], env.SESSION_SECRET)) {

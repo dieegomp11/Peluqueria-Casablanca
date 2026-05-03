@@ -187,6 +187,16 @@ export default function NewAppointmentModal({ isOpen, onClose, onCreated, slotTi
 
     setSaving(false);
     if (!insertError) {
+      fetch('/api/notify-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: selectedClient.nombreCliente,
+          telefono: selectedClient.telefono,
+          fechaInicio,
+          peluquero: hairdresser,
+        }),
+      }).catch(() => {});
       onCreated();
       onClose();
     } else {

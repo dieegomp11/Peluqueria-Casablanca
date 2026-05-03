@@ -1,4 +1,4 @@
-const WEBHOOK_URL = process.env.WEBHOOK_CANCEL_URL;
+const WEBHOOK_URL = process.env.WEBHOOK_CONFIRM_URL;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({ nombre, telefono, peluquero, fechaFormateada }),
     });
   } catch {
-    // fire-and-forget: no bloqueamos si n8n falla
+    // fire-and-forget
   }
 
   res.status(200).json({ ok: true });
