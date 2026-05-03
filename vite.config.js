@@ -70,11 +70,18 @@ export default defineConfig(({ mode }) => {
             req.on('data', chunk => body += chunk.toString());
             req.on('end', async () => {
               try {
-                const data = JSON.parse(body);
+                const { nombre, telefono, fechaInicio } = JSON.parse(body);
+                const fechaMadrid = fechaInicio
+                  ? new Intl.DateTimeFormat('es-ES', {
+                      timeZone: 'Europe/Madrid',
+                      year: 'numeric', month: '2-digit', day: '2-digit',
+                      hour: '2-digit', minute: '2-digit',
+                    }).format(new Date(fechaInicio))
+                  : null;
                 await fetch('https://barberiacasablanca-n8n.nrmm0x.easypanel.host/webhook/3455a5b6-fe8f-407a-83c1-cd602686c88f', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(data),
+                  body: JSON.stringify({ nombre, telefono, fechaInicio: fechaMadrid }),
                 });
               } catch { /* fire-and-forget */ }
               res.setHeader('Content-Type', 'application/json');
