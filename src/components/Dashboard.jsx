@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Calendar as CalendarIcon, TrendingUp, Scissors, UserX, ChevronLeft, ChevronRight, BarChart3, AlertCircle, X } from 'lucide-react';
+import { Calendar as CalendarIcon, TrendingUp, Scissors, UserX, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 const CustomDatePicker = ({ currentDate, onSelectDate, onClose, filterType }) => {
@@ -296,9 +296,6 @@ export default function Dashboard() {
   // No shows: Citas that were marked as NOT attended
   const noShows = validCitas.filter(c => c.asistencia === false);
   
-  // Confirmed appointments (useful for "incoming" services count)
-  const confirmedCitas = validCitas.filter(c => c.confirmado === true);
-
   const totalRevenue = attendedCitas.reduce((acc, c) => acc + (Number(c.precio) || 0), 0);
 
   // Group by Hairdresser and Services

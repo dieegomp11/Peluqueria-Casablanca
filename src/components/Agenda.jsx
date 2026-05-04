@@ -1,6 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Clock, Phone, User, Scissors, ChevronLeft, ChevronRight, Calendar as CalendarIcon, UserX, X, Check, Trash2, Users, Hourglass, AlertCircle, RefreshCw } from 'lucide-react';
-import { createPortal } from 'react-dom';
+import { Clock, Phone, Scissors, ChevronLeft, ChevronRight, Calendar as CalendarIcon, UserX, X, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import AbsenceModal from './AbsenceModal';
 import NewAppointmentModal from './NewAppointmentModal';
 import { supabase } from '../lib/supabaseClient';
@@ -105,183 +104,11 @@ const CustomDatePicker = ({ currentDate, onSelectDate, onClose }) => {
   )
 };
 
-const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
-
 const formatPhoneDisplay = (phone) => {
   if (!phone) return '';
   const digits = phone.replace(/[\s\-().+]/g, '');
   return digits.length > 9 ? digits.slice(-9) : phone.trim();
 };
-
-function WaitlistPopup({ entries, time, hairdresser, onClose, onRefresh }) {
-  if (!entries || entries.length === 0) return null;
-
-  const [notifyingId, setNotifyingId] = useState(null);
-  const [localNotified, setLocalNotified] = useState(new Set());
-  const [localNotifiedAt, setLocalNotifiedAt] = useState(new Map());
-  const [notifyError, setNotifyError] = useState('');
-
-  const formatTime = (iso) => {
-    if (!iso) return '--:--';
-    const d = new Date(iso);
-    return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatDateShort = (iso) => {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
-  };
-
-  const getSpainNowIso = () => new Date().toISOString();
-
-  const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
-
-  // Devuelve true si la notificación enviada a 'e' lleva menos de 3 horas sin respuesta
-  const isBlockingNotification = (e) => {
-    if (!(e.notificado || localNotified.has(e.id))) return false;
-    if (e.denegado) return false;
-    const envioRaw = localNotifiedAt.get(e.id) || e.fechaEnvio;
-    if (!envioRaw) return true; // registro antiguo sin fechaEnvio → bloquear por precaución
-    return (Date.now() - new Date(envioRaw).getTime()) < THREE_HOURS_MS;
-  };
-
-  const isNotified = (e) => e.notificado || localNotified.has(e.id);
-  const hasPendingNotification = entries.some(isBlockingNotification);
-
-  const handleNotify = async (w) => {
-    if (notifyingId || isNotified(w) || hasPendingNotification) return;
-    setNotifyingId(w.id);
-    try {
-      const fechaEnvio = getSpainNowIso();
-      await supabase.from('Lista Espera').update({ notificado: true, fechaEnvio }).eq('idEspera', w.id);
-      setLocalNotified(prev => new Set([...prev, w.id]));
-      setLocalNotifiedAt(prev => new Map([...prev, [w.id, fechaEnvio]]));
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      try {
-        await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: String(w.id),
-          signal: controller.signal,
-        });
-      } catch (fetchErr) {
-        console.warn('Webhook no respondió:', fetchErr?.message);
-      } finally {
-        clearTimeout(timeout);
-      }
-      onRefresh();
-    } catch (err) {
-      setNotifyError('No se pudo enviar la notificación. Inténtalo de nuevo.');
-    } finally {
-      setNotifyingId(null);
-    }
-  };
-
-  return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div
-        className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="bg-violet-600 px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Hourglass className="w-4 h-4 text-violet-200" />
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-violet-300">Lista de Espera</p>
-              <p className="text-white font-bold text-sm leading-tight">
-                {time}{hairdresser ? ` · ${hairdresser}` : ''}
-              </p>
-            </div>
-          </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
-            <X className="w-4 h-4 text-white" />
-          </button>
-        </div>
-
-        {/* Entries list */}
-        <div className="divide-y divide-gray-100 max-h-[60vh] overflow-y-auto modal-scroll-container">
-          {[...entries].sort((a, b) => a.id - b.id).map((w, i) => (
-            <div key={w.id} className="px-5 py-3.5 flex flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-600 text-[10px] font-black flex items-center justify-center shrink-0">{i + 1}</span>
-                  <span className="font-bold text-sm text-gray-900 truncate uppercase">{w.client}</span>
-                </div>
-                <div className="flex items-center gap-1 text-[11px] text-gray-400 font-semibold shrink-0">
-                  <Phone className="w-3 h-3" />
-                  {formatPhoneDisplay(w.phone)}
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap pl-7">
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 border border-gray-200">{w.service}</span>
-                <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-md border border-violet-100">
-                  {formatTime(w.fechaDeseada)} – {formatTime(w.fechaFinDeseada)}
-                </span>
-                {w.hairdresser && (
-                  <span className="text-[10px] font-semibold text-gray-500">{w.hairdresser}</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between pl-7">
-                <span className="text-[9px] text-gray-400 font-medium">
-                  {isNotified(w) && !w.denegado && !isBlockingNotification(w)
-                    ? <span className="text-amber-500 font-bold">Sin respuesta +3h</span>
-                    : <>Solicitado el {formatDateShort(w.fechaCreacion)}</>
-                  }
-                </span>
-                <button
-                  onClick={() => handleNotify(w)}
-                  disabled={!!notifyingId || isNotified(w) || w.denegado || (!isNotified(w) && !w.denegado && hasPendingNotification)}
-                  title={hasPendingNotification && !isNotified(w) && !w.denegado ? 'Hay una notificación pendiente de respuesta. Espera 3 h antes de notificar a otro cliente.' : undefined}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
-                    w.denegado
-                      ? 'bg-red-100 text-red-600 border border-red-200 cursor-default'
-                      : isNotified(w)
-                      ? 'bg-green-100 text-green-600 border border-green-200 cursor-default'
-                      : notifyingId === w.id
-                      ? 'bg-violet-100 text-violet-400 border border-violet-200 cursor-wait'
-                      : hasPendingNotification
-                      ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                      : 'bg-violet-600 text-white hover:bg-violet-700 active:scale-95 shadow-sm'
-                  }`}
-                >
-                  {w.denegado ? (
-                    <>Denegado</>
-                  ) : isNotified(w) ? (
-                    <><Check className="w-3 h-3" /> Notificado</>
-                  ) : notifyingId === w.id ? (
-                    <>Enviando…</>
-                  ) : (
-                    <>Notificar</>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex flex-col gap-2">
-          {notifyError && (
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-red-500">⚠ {notifyError}</p>
-              <button onClick={() => setNotifyError('')} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-          <p className="text-[10px] text-gray-400 text-center font-semibold uppercase tracking-wider">
-            {entries.length} cliente{entries.length !== 1 ? 's' : ''} en espera para este tramo
-          </p>
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
 
 const TIME_OPTIONS = [];
 for (let h = 7; h <= 23; h++) {
@@ -472,8 +299,6 @@ export default function Agenda() {
   const [confirmDeleteAbsenceId, setConfirmDeleteAbsenceId] = useState(null);
   const [horarioData, setHorarioData] = useState(null);
   const [isHorarioModalOpen, setIsHorarioModalOpen] = useState(false);
-  const [waitlistEntries, setWaitlistEntries] = useState([]);
-  const [waitlistPopup, setWaitlistPopup] = useState({ open: false, entries: [], time: '', hairdresser: '' });
   const [loadError, setLoadError] = useState(null);
   const [actionError, setActionError] = useState('');
   const [savingAttendanceId, setSavingAttendanceId] = useState(null);
@@ -670,10 +495,6 @@ export default function Agenda() {
       const horCierreTarde = parseHMinsLocal(horarioRow?.horaCierreTarde);
       const horApertMañ   = parseHMinsLocal(horarioRow?.horaAperturaMañana);
 
-      const { data: waitlistData } = await supabase
-        .from('Lista Espera')
-        .select('*, Cliente(*), "Tipo Corte"(*)');
-
       const hdMap = {};
       if (peluquerosData) {
         peluquerosData.forEach(p => hdMap[p.idPeluquero] = p.nombre);
@@ -767,31 +588,6 @@ export default function Agenda() {
         setAbsences(mappedAbs);
       }
 
-      if (waitlistData) {
-        const mapped = waitlistData.map(w => {
-          const dStart = w.fechaDeseada ? new Date(w.fechaDeseada) : null;
-          const dEnd = w.fechaFinDeseada ? new Date(w.fechaFinDeseada) : null;
-          return {
-            id: w.idEspera,
-            clientId: w.idCliente,
-            client: w.Cliente?.nombreCliente || 'Sin nombre',
-            phone: w.Cliente?.telefono || 'Sin teléfono',
-            service: w['Tipo Corte']?.nombreCorte || 'Servicio',
-            hairdresserId: w.idPeluquero,
-            hairdresser: w.idPeluquero ? (hdMap[w.idPeluquero] || null) : null,
-            date: dStart ? formatDate(dStart) : '',
-            startMins: dStart ? dStart.getHours() * 60 + dStart.getMinutes() : 0,
-            endMins: dEnd ? dEnd.getHours() * 60 + dEnd.getMinutes() : 0,
-            fechaDeseada: w.fechaDeseada,
-            fechaFinDeseada: w.fechaFinDeseada,
-            notificado: w.notificado,
-            denegado: w.denegado,
-            fechaCreacion: w.fechaCreacion,
-            fechaEnvio: w.fechaEnvio,
-          };
-        });
-        setWaitlistEntries(mapped);
-      }
     } catch (err) {
       console.error('Error loading agenda:', err);
       setLoadError('No se pudieron cargar las citas.');
@@ -956,46 +752,6 @@ export default function Agenda() {
                   <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}/>
                 </button>
 
-                {/* Lista de espera */}
-                {(() => {
-                  const THREE_H = 3 * 60 * 60 * 1000;
-                  const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-                  const waitlistCount = waitlistEntries.filter(w => {
-                    if (w.date !== currentFormattedDate || w.denegado || w.notificado) return false;
-                    const slotEnd = Math.floor(w.startMins / 30) * 30 + 30;
-                    if (currentFormattedDate < strToday || (currentFormattedDate === strToday && slotEnd < nowMins)) return false;
-                    return hairdressers.some(hd => {
-                      const hdId = Object.entries(hairdresserMap).find(([k, v]) => v === hd)?.[0];
-                      const matchHd = !w.hairdresserId || String(w.hairdresserId) === hdId;
-                      if (!matchHd) return false;
-                      const slotStartMins = Math.floor(w.startMins / 30) * 30;
-                      const nextSlotMins = slotStartMins + 30;
-                      const slotApts = appointments.filter(a => {
-                        if (a.date !== currentFormattedDate || a.hairdresser !== hd) return false;
-                        const aptMins = timeToMins(a.time);
-                        return aptMins >= slotStartMins && aptMins < nextSlotMins;
-                      });
-                      if (slotApts.length > 0) return false;
-                      const groupHasBlocking = waitlistEntries.some(other => {
-                        if (other.date !== currentFormattedDate || !other.notificado || other.denegado) return false;
-                        const otherHdId = Object.entries(hairdresserMap).find(([k, v]) => v === hd)?.[0];
-                        const otherMatchHd = !other.hairdresserId || String(other.hairdresserId) === otherHdId;
-                        if (!otherMatchHd) return false;
-                        if (other.startMins < slotStartMins || other.startMins >= nextSlotMins) return false;
-                        if (!other.fechaEnvio) return true;
-                        return (Date.now() - new Date(other.fechaEnvio).getTime()) < THREE_H;
-                      });
-                      return !groupHasBlocking;
-                    });
-                  }).length;
-                  return waitlistCount > 0 ? (
-                    <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-violet-100 border border-violet-200 rounded-lg">
-                      <Hourglass className="w-3.5 h-3.5 text-violet-600" />
-                      <span className="text-[11px] font-black text-violet-700 uppercase tracking-wider">{waitlistCount}</span>
-                    </div>
-                  ) : null;
-                })()}
-
                 {/* Navegación de fecha */}
                 <div className="flex items-center gap-0.5 sm:gap-1 bg-white border border-gray-200 rounded-lg p-0.5 sm:p-1 shadow-sm">
                   {!isToday && (
@@ -1124,21 +880,6 @@ export default function Agenda() {
                         const isOccupiedByPrevious = !!prevApt;
                         const isMultiSlot = slotApts.some(a => timeToMins(a.time) + (a.durationMins || 30) > nextSlotMins);
 
-                        // Waitlist entry from a previous slot spilling into this one
-                        const prevWaitlist = !prevApt ? waitlistEntries.find(w => {
-                          if (w.date !== currentFormattedDate || w.denegado) return false;
-                          const matchHd = !w.hairdresserId || String(w.hairdresserId) === hdId;
-                          return matchHd && w.startMins < slotStartMins && w.endMins > slotStartMins;
-                        }) : null;
-                        const isOccupiedByPreviousWaitlist = !!prevWaitlist;
-
-                        // Waitlist entry starting in this slot that extends beyond it
-                        const hasMultiSlotWaitlist = slotApts.length === 0 && waitlistEntries.some(w => {
-                          if (w.date !== currentFormattedDate || w.denegado) return false;
-                          const matchHd = !w.hairdresserId || String(w.hairdresserId) === hdId;
-                          return matchHd && w.startMins >= slotStartMins && w.startMins < nextSlotMins && w.endMins > nextSlotMins;
-                        });
-
                         const absenceRecord = absences.find(abs => {
                           if (abs.hairdresser !== hd) return false;
                           if (currentFormattedDate < abs.startDate || currentFormattedDate > abs.endDate) return false;
@@ -1147,7 +888,7 @@ export default function Agenda() {
                         });
 
                         return (
-                          <div key={`${time}-${hd}`} className="p-1 md:p-2 border-r border-gray-100 last:border-r-0 relative group cursor-pointer min-w-0" style={{ height: `${SLOT_HEIGHT}rem`, overflow: (isMultiSlot || hasMultiSlotWaitlist) ? 'visible' : undefined }}>
+                          <div key={`${time}-${hd}`} className="p-1 md:p-2 border-r border-gray-100 last:border-r-0 relative group cursor-pointer min-w-0" style={{ height: `${SLOT_HEIGHT}rem`, overflow: isMultiSlot ? 'visible' : undefined }}>
                             {absenceRecord ? (
                               <div
                                 className="w-full h-full rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center opacity-80 relative group/absence transition-colors"
@@ -1188,16 +929,10 @@ export default function Agenda() {
                                 {isOccupiedByPrevious && (
                                   <div style={{ height: `${(Math.min(30, (timeToMins(prevApt.time) + (prevApt.durationMins || 30)) - slotStartMins) / 30) * SLOT_HEIGHT - 0.25}rem` }} className="w-full shrink-0" />
                                 )}
-                                {isOccupiedByPreviousWaitlist && (
-                                  <div style={{ height: `${(Math.min(30, prevWaitlist.endMins - slotStartMins) / 30) * SLOT_HEIGHT - 0.25}rem` }} className="w-full shrink-0" />
-                                )}
-
                                 {(() => {
                                   const els = [];
                                   let currentMins = isOccupiedByPrevious
                                     ? (timeToMins(prevApt.time) + (prevApt.durationMins || 30))
-                                    : isOccupiedByPreviousWaitlist
-                                    ? prevWaitlist.endMins
                                     : slotStartMins;
 
                                   if (slotApts.length === 0) {
@@ -1205,48 +940,7 @@ export default function Agenda() {
                                     const showGap = gapMins >= 5 && currentMins < nextSlotMins;
                                     const isPast = currentFormattedDate < strToday || (currentFormattedDate === strToday && (currentMins + 30) < (new Date().getHours() * 60 + new Date().getMinutes()));
 
-                                    const slotWaitlist = !isPast ? waitlistEntries.filter(w => {
-                                      if (w.date !== currentFormattedDate) return false;
-                                      if (w.denegado) return false;
-                                      const matchHd = !w.hairdresserId || String(w.hairdresserId) === hdId;
-                                      if (!matchHd) return false;
-                                      if (!(w.startMins >= slotStartMins && w.startMins < nextSlotMins)) return false;
-                                      // No mostrar si el rango solicitado se solapa con alguna cita existente
-                                      if (w.endMins > 0) {
-                                        const hasOverlap = appointments.some(a => {
-                                          if (a.date !== currentFormattedDate || a.hairdresser !== hd) return false;
-                                          const aptStart = timeToMins(a.time);
-                                          const aptEnd = aptStart + (a.durationMins || 30);
-                                          return w.startMins < aptEnd && w.endMins > aptStart;
-                                        });
-                                        if (hasOverlap) return false;
-                                      }
-                                      return true;
-                                    }) : [];
-
                                     if (!showGap) return null;
-
-                                    if (slotWaitlist.length > 0) {
-                                      const wDuration = slotWaitlist[0].endMins > slotWaitlist[0].startMins
-                                        ? slotWaitlist[0].endMins - slotWaitlist[0].startMins
-                                        : 30;
-                                      const wCardHeight = `${(wDuration / 30) * SLOT_HEIGHT - 0.5}rem`;
-                                      return (
-                                        <div
-                                          className="rounded-xl border-2 border-violet-300 bg-violet-50 transition-all flex items-center justify-center cursor-pointer hover:bg-violet-100 hover:border-violet-500 hover:shadow-sm shrink-0 overflow-hidden"
-                                          style={{ height: wCardHeight }}
-                                          onClick={(e) => { e.stopPropagation(); setWaitlistPopup({ open: true, entries: slotWaitlist, time: minsToTime(slotStartMins), hairdresser: hd }); }}
-                                        >
-                                          <div className="flex flex-col items-center gap-0.5 pointer-events-none">
-                                            <div className="flex items-center gap-1">
-                                              <Hourglass className="w-3 h-3 text-violet-500" />
-                                              <span className="text-[10px] font-black text-violet-600 uppercase tracking-wider">Espera</span>
-                                            </div>
-                                            <span className="text-[9px] font-bold text-violet-400">{slotWaitlist.length} cliente{slotWaitlist.length !== 1 ? 's' : ''}</span>
-                                          </div>
-                                        </div>
-                                      );
-                                    }
 
                                     return (
                                       <div
@@ -1814,15 +1508,6 @@ export default function Agenda() {
         onCreated={loadAgenda} slotTime={newAptModal.time} slotDate={formatDate(currentDate)}
         hairdresser={newAptModal.hairdresser} hairdresserId={newAptModal.hairdresserId} appointments={appointments}
       />
-      {waitlistPopup.open && (
-        <WaitlistPopup
-          entries={waitlistPopup.entries}
-          time={waitlistPopup.time}
-          hairdresser={waitlistPopup.hairdresser}
-          onClose={() => setWaitlistPopup({ open: false, entries: [], time: '', hairdresser: '' })}
-          onRefresh={loadAgenda}
-        />
-      )}
       {isHorarioModalOpen && (
         <HorarioModal
           isOpen={isHorarioModalOpen}

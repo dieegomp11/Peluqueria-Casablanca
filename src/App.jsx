@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, LogOut, AlertTriangle, X, Scissors, Menu } from 'lucide-react';
-// import { supabase } from './lib/supabaseClient'; // AUTH DESACTIVADO TEMPORALMENTE
 import Agenda from './components/Agenda';
 import Clients from './components/Clients';
 import Services from './components/Services';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import logoUrl from './assets/logo.jpeg';
-import { BarChart3 } from 'lucide-react';
-
 function App() {
   const [activeTab, setActiveTab] = useState('agenda');
   const [session, setSession] = useState(() => !!localStorage.getItem('casablanca_token'));
   const [currentUser, setCurrentUser] = useState(() => localStorage.getItem('casablanca_user') || '');
-  const [isRecovering] = useState(false);
   const isAdmin = currentUser === 'admin@casablanca.com';
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -86,11 +82,6 @@ function App() {
     setSession(false);
     setShowLogoutConfirm(false);
   };
-
-  // If we are in recovery mode, show the recovery UI even if there is a session
-  if (isRecovering) {
-    return <Login session={session} isRecoveryMode={true} />;
-  }
 
   if (!session) {
     return <Login onLogin={(email) => { setCurrentUser(email); setSession(true); }} />;
